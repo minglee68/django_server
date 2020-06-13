@@ -31,21 +31,26 @@
       <div class="title">
         <span>NBA</span>
       </div>
-      <form class="form-inline search-form">
+      <form class="form-inline search-form" action="{% url 'basketball:search_nba_player' %}" method="post">
+	{% csrf_token %}
         <div class="form-group">
           <label class="sr-only" for="NBA_search">Search</label>
           <div class="input-group">
             <div class="input-group-addon">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
             </div>
-            <input type="text" class="form-control" id="NBA_search" placeholer="Search players">
+            <input type="text" class="form-control" name="NBA_search" id="NBA_search" placeholer="Search players">
           </div>
         </div>
       </form>
       <div class="player_list">
-        <div class="NBA_list"><span>Player 1</span></div>
-        <div class="NBA_list"><span>Player 2</span></div>
-        <div class="NBA_list"><span>Player 3</span></div>
+	{% if player_list %}
+	  {% for player in player_list %}
+	  <div class="NBA_list"><span>{{ player.name }}</span></div>
+	  {% endfor %}
+	{% else %}
+	  <p> No player found </p>
+	{% endif %}
         <!-- TODO: Overflow-y scroll -->
       </div>
     </div>
