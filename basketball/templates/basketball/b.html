@@ -53,12 +53,14 @@
 	      data: {
 		'player_name': player_name
 	      },
+	      contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 	      dataType: 'json',
 	      success: function (data) {
 		$("#NBA_player_list").empty();
 		var html = '';
-		for (var i=0; i < data.data.length; i++) {
-		  html += '<div class="NBA_list" id="NBA_list"><span>' + data.data[i].name + '</span></div>';
+		data = JSON.parse(data);
+		for (var i=0; i < data.length; i++) {
+		  html += '<div class="NBA_list"><span>' + data[i].name + '</span></div>';
 		}
 		$("#NBA_player_list").append(html);
 	      },
@@ -133,12 +135,14 @@
 	      data: {
 		'player_name': player_name
 	      },
+	      contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 	      dataType: 'json',
 	      success: function (data) {
 		$("#KBL_player_list").empty();
 		var html = '';
-		for (var i=0; i < data.data.length; i++) {
-		  html += '<div class="KBL_list"><span>' + data.data[i].name + '</span></div>';
+		data = JSON.parse(data);
+		for (var i=0; i < data.length; i++) {
+		  html += '<div class="KBL_list"><span>' + data[i].name + '</span></div>';
 		}
 		$("#KBL_player_list").append(html);
 	      },

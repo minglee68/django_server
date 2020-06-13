@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, JsonResponse
 
@@ -36,4 +38,5 @@ def get_player_list(request):
     player_list = check_player_name(player_name)
     if player_list != None:
         player_list = list(player_list.values())
-    return JsonResponse({'data': player_list})
+    # return JsonResponse({'data': player_list})
+    return JsonResponse(json.dumps(player_list, ensure_ascii=False), safe=False)
