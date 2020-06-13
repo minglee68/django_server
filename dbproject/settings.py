@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'basketball.apps.BasketballConfig',
+	'crawling.apps.CrawlingConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,7 +84,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
-            'charset': 'utf8mb4'    
+            'charset': 'utf8mb4'
         },
     }
 }
