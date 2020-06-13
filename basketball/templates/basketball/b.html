@@ -31,7 +31,7 @@
       <div class="title">
         <span>NBA</span>
       </div>
-      <form class="form-inline search-form" action="{% url 'basketball:search_player' %}" method="post">
+      <form class="form-inline search-form">
 	{% csrf_token %}
         <div class="form-group">
           <label class="sr-only" for="NBA_search">Search</label>
@@ -39,22 +39,33 @@
             <div class="input-group-addon">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
             </div>
-	    {% if player_name_1 %}
-	      <input type="text" class="form-control" name="NBA_search" id="KBL_search" value="{{ player_name_1 }}">
-	    {% else %}
-              <input type="text" class="form-control" name="NBA_search" id="KBL_search" placeholer="Search players">
-	    {% endif %}
+            <input type="text" class="form-control" name="NBA_search" id="NBA_search" placeholer="Search players" oninput="NBA_changed()">
           </div>
         </div>
       </form>
-      <div class="player_list">
-	{% if player_list_1 %}
-	  {% for player in player_list_1 %}
-	  <div class="NBA_list"><span>{{ player.name }}</span></div>
-	  {% endfor %}
-	{% else %}
-	  <p> No player found </p>
-	{% endif %}
+      <div class="player_list" id="NBA_player_list">
+	<script>
+	  function NBA_changed() {
+	    var player_name = $("#NBA_search").val();
+	    
+	    $.ajax({
+		    url: '{% url "basketball:get_player_list" %}',
+	      data: {
+		'player_name': player_name
+	      },
+	      dataType: 'json',
+	      success: function (data) {
+		$("#NBA_player_list").empty();
+		var html = '';
+		for (var i=0; i < data.data.length; i++) {
+		  html += '<div class="NBA_list" id="NBA_list"><span>' + data.data[i].name + '</span></div>';
+		}
+		$("#NBA_player_list").append(html);
+	      },
+	      errors: function (e) { alert(e); }
+	    });
+	  }
+	</script>
         <!-- TODO: Overflow-y scroll -->
       </div>
     </div>
@@ -100,7 +111,7 @@
       <div class="title">
         <span>KBL</span>
       </div>
-      <form class="form-inline search-form" action="{% url 'basketball:search_player' %}" method="post">
+      <form class="form-inline search-form">
 	{% csrf_token %}
         <div class="form-group">
           <label class="sr-only" for="KBL_search">Search</label>
@@ -108,25 +119,37 @@
             <div class="input-group-addon">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
             </div>
-	    {% if player_name_2 %}
-	      <input type="text" class="form-control" name="KBL_search" id="KBL_search" value="{{ player_name_2 }}">
-	    {% else %}
-              <input type="text" class="form-control" name="KBL_search" id="KBL_search" placeholer="Search players">
-	    {% endif %}
+            <input type="text" class="form-control" name="KBL_search" id="KBL_search" placeholer="Search players" oninput="KBL_changed()">
           </div>
         </div>
       </form>
-      <div class="player_list">
-	{% if player_list_2 %}
-	  {% for player in player_list_2 %}
-	  <div class="NBA_list"><span>{{ player.name }}</span></div>
-	  {% endfor %}
-	{% else %}
-	  <p> No player found </p>
-	{% endif %}
+      <div class="player_list" id="KBL_player_list">
+	<script>
+	  function KBL_changed() {
+	    var player_name = $("#KBL_search").val();
+	    
+	    $.ajax({
+		    url: '{% url "basketball:get_player_list" %}',
+	      data: {
+		'player_name': player_name
+	      },
+	      dataType: 'json',
+	      success: function (data) {
+		$("#KBL_player_list").empty();
+		var html = '';
+		for (var i=0; i < data.data.length; i++) {
+		  html += '<div class="KBL_list"><span>' + data.data[i].name + '</span></div>';
+		}
+		$("#KBL_player_list").append(html);
+	      },
+	      errors: function (e) { alert(e); }
+	    });
+	  }
+	</script>
       </div>
     </div>
   </div>
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 </body>
 
 </html>
