@@ -1,0 +1,92 @@
+hr {
+  margin-bottom: 0 !important;
+}
+
+#header {
+  display: flex;
+  justify-content: center;
+  margin: 3ex 0;
+}
+  #header > button {
+    margin-right: 3em;
+  }
+  #header > button:last-child {
+    margin-right: 0;
+  }
+
+#content {
+  display: flex;
+}
+  #NBA, #KBL {
+    flex-grow: 1;
+  }
+  #NBA {
+    border-right: 1px solid #eee;
+  }
+  #KBL {
+    border-left: 1px solid #eee;
+  }
+    .title {
+      display: flex;
+      justify-content: center;
+      padding: 1ex;
+    }
+      .title > span {
+        font-weight: bold;
+        font-size: 2em;
+      }
+
+    .search-form {
+      padding: 0 1em 1em 1em;
+    }
+      .search-form div {
+        width: 100%;
+      }
+
+      #NBA > .player_list > div {
+        padding: 1ex 3ex;
+      }
+
+      #KBL > .player_list > div {
+        padding: 1ex 2ex;
+      }
+
+      .player_list > div {
+        transition: background-color ease 0.5s 0s;
+        cursor: pointer;
+      }
+      .player_list > div:hover {
+        background-color: #EEE;
+      }
+
+  #NBA_detail, #KBL_detail {
+    padding: 1em;
+    flex-grow: 5;
+  }
+    .detail_top {
+      display: flex;
+      margin-bottom: 2em;
+    }
+      .detail_top > img {
+        height: 13em;
+        margin: 1em;
+      }
+      .detail_top > div {
+        flex-grow: 1;
+        padding: 0 1em;
+
+      }
+        .detail_top .name {
+          font-weight: bold;
+          font-size: 1.5em;
+        }
+
+    .detail_name {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail_bottom {
+      display: flex;
+      justify-content: center;
+    }

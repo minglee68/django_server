@@ -1,0 +1,9 @@
+{% if city_list %}
+    <ul>
+    {% for city in city_list %}
+    <li>{{ city.name }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No cities are available.</p>
+{% endif %}
