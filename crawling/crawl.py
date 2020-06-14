@@ -1,9 +1,6 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
-DRIVER_PATH = "D:\Program\chromedriver.exe"    # Set your chronium path
-DEBUG = True
-
 def crawl_players():
 	from string import ascii_lowercase
 	import re
@@ -38,13 +35,15 @@ def crawl_players():
 			html = driver.page_source
 			soup = BeautifulSoup(html, 'html.parser')
 
+			metadata = {}
+
 			img = soup.select("#meta > div > img")
 			if len(img) == 0:
 				img = "https://via.placeholder.com/150"
 			else:
 				img = img[0].attrs['src']
+			metadata['img'] = img
 
-			metadata = {}
 			try:
 				metadata['name'] = soup.select("#meta > div:nth-last-of-type(1) > h1")[0].get_text()
 
@@ -72,7 +71,6 @@ def crawl_players():
 				print(metadata['name'], end=' ')
 				print(metadata['position'], end=' ')
 				print(str(metadata['height']) + " " + str(metadata['weight']) + " " + str(metadata['age']))
-				print(img)
 
 	return player_list, error_list
 
