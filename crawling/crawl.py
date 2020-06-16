@@ -1,18 +1,24 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
+import re
+
+DRIVER_PATH = "D:\Program\chromedriver.exe"    # Set your chronium path
+ORIG_URL = "https://www.basketball-reference.com"
+DEBUG = True
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('--disable-dev-shm-usage')
+chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 def crawl_players():
 	from string import ascii_lowercase
-	import re
 
-	ORIG_URL = "https://www.basketball-reference.com/"
-
-	chrome_options = webdriver.ChromeOptions()
-	chrome_options.add_argument('--headless')
-	chrome_options.add_argument('--no-sandbox')
-	chrome_options.add_argument('--disable-gpu')
-	chrome_options.add_argument('--disable-dev-shm-usage')
-	chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+	global ORIG_URL
+	global DRIVER_PATH
+	global chrome_options
 	driver = webdriver.Chrome(DRIVER_PATH, options=chrome_options)
 
 	player_list = []
@@ -21,7 +27,7 @@ def crawl_players():
 		if idx == 'x':
 			continue
 
-		url = ORIG_URL + "players/" + idx
+		url = ORIG_URL + "/players/" + idx
 		driver.get(url)
 		html = driver.page_source
 		soup = BeautifulSoup(html, 'html.parser')
@@ -59,9 +65,7 @@ def crawl_players():
 					elif (data.startswith("Born:")):
 						metadata['age'] = int(data.split(":")[2].split("-")[0].strip())
 						break
-
 				player_list.append(metadata)
-
 			except Exception as e:
 				print(e)
 				error_list.append(link)
@@ -74,5 +78,69 @@ def crawl_players():
 
 	return player_list, error_list
 
+def crawl_gamePlayerStat():
+	day_list = ["october", "november", "december", "january", "february", "march", "april", "may", "june"]
+	year_list = range(2014, 2019)
+
+	global ORIG_URL
+	global DRIVER_PATH
+	global chrome_options
+	driver = webdriver.Chrome(DRIVER_PATH, options=chrome_options)
+
+	game_data_list = []
+	for year in year_list:
+		for day in day_list:
+			url = ORIG_URL + "/leagues/NBA_" + str(year) + "_games-" + day + ".html"
+			driver.get(url)
+			html = driver.page_source
+			soup = BeautifulSoup(html, 'html.parser')
+
+			for link in soup.select("#schedule > tbody > tr > td:nth-of-type(6) > a"):
+				if DEBUG:
+					print(link)
+				game_data = {}
+				link = link.attrs['href']
+				game_data['date'] = link.split('/')[-1][:8]
+
+				driver.get(ORIG_URL + link)
+				html = driver.page_source
+				soup = BeautifulSoup(html, 'html.parser')
+
+				is_home = False
+				for table in soup.select(".now_sortable"):
+					if not table.get('id').endswith("-game-basic"):
+						continue
+
+					game = {}
+					game["team"] = table.find("caption").get_text().split('(')[0].strip()
+					team_list = []
+					for row in table.select("tbody tr"):
+						if row.attrs.get('class') is not None:
+							continue
+
+						player = {}
+						player['name'] = row.find('th').get_text()
+						for col in row.select("td"):
+							player[col.attrs["data-stat"]] = col.get_text()
+
+						team_list.append(player)
+					game["players"] = team_list
+
+					if is_home:
+						if game_data.get('home'):
+							print("error")
+						game_data['home'] = game
+					else:
+						if game_data.get('away'):
+							print("error")
+						game_data['away'] = game
+
+					is_home = not is_home
+				game_data_list.append(game_data)
+	return game_data_list
+
 if __name__ == "__main__":
-	crawl_players()
+	import json
+	data = crawl_players()
+	#data = crawl_gamePlayerStat()
+	print(json.dumps(data, indent=4))
