@@ -62,10 +62,10 @@ class League(models.Model):
 class Player(models.Model):
     playerid = models.AutoField(db_column='PlayerId', primary_key=True)  # Field name made lowercase.
     name = models.CharField(db_column='Name', max_length=128)  # Field name made lowercase.
-    position = models.CharField(db_column='Position', max_length=128, blank=True, null=True)  # Field name made lowercase.
     height = models.IntegerField(db_column='Height')  # Field name made lowercase.
     weight = models.IntegerField(db_column='Weight')  # Field name made lowercase.
     age = models.IntegerField(db_column='Age')  # Field name made lowercase.
+    imageurl = models.CharField(db_column='ImageURL', max_length=2083)
 
     class Meta:
         db_table = 'player'
