@@ -53,7 +53,27 @@ def get_player_stats(request):
     player_list = check_player_name(player_name)
     playerid = player_list[0].playerid
     try:
-        playerstats = Gameplayerstat.objects.filter(playerid=playerid)
+        playerstats = Gameplayerstat.objects.filter(playerid=player_list[0])
+        stats = [0 for _ in range(15)]
+        for playerstat in playerstats:
+            stats[0] += 0 #int(playerstat.mp)
+            stats[1] += int(playerstat.fg)
+            stats[2] += int(playerstat.fga)
+            stats[3] += int(playerstat.number_3p)
+            stats[4] += int(playerstat.number_3pa)
+            stats[5] += int(playerstat.ft)
+            stats[6] += int(playerstat.fta)
+            stats[7] += int(playerstat.orb)
+            stats[8] += int(playerstat.drb)
+            stats[9] += int(playerstat.ast)
+            stats[10] += int(playerstat.pf)
+            stats[11] += int(playerstat.st)
+            stats[12] += int(playerstat.tov)
+            stats[13] += int(playerstat.bs)
+            stats[14] += int(playerstat.pts)
+        for i in range(15):
+            stats[i] = stats[i] / len(playerstats)
+        '''
         stats = [
             0,#playerstats[0].mp,
             playerstats[0].fg,
@@ -71,6 +91,7 @@ def get_player_stats(request):
             playerstats[0].bs,
             playerstats[0].pts
         ]
+        '''
     except:
         print('no data');
 
