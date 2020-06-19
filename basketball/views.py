@@ -46,6 +46,38 @@ def get_player_list(request):
     # return JsonResponse({'data': player_list})
     return JsonResponse(json.dumps(player_list, ensure_ascii=False), safe=False)
 
+def get_player_stats(request):
+    labels = ['MP', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS', 'PTS']
+    stats = [0,]
+    player_name = request.GET.get('player_name', None)
+    player_list = check_player_name(player_name)
+    playerid = player_list[0].playerid
+    try:
+        playerstats = Gameplayerstat.objects.filter(playerid=playerid)
+        stats = [
+            0,#playerstats[0].mp,
+            playerstats[0].fg,
+            playerstats[0].fga,
+            playerstats[0].number_3p,
+            playerstats[0].number_3pa,
+            playerstats[0].ft,
+            playerstats[0].fta,
+            playerstats[0].orb,
+            playerstats[0].drb,
+            playerstats[0].ast,
+            playerstats[0].pf,
+            playerstats[0].st,
+            playerstats[0].tov,
+            playerstats[0].bs,
+            playerstats[0].pts
+        ]
+    except:
+        print('no data');
+
+    context = {'chart_labels':labels, 'chart_data':stats}
+
+    return JsonResponse(context)
+
 def crawl_player(request):
     global IS_CRAWLING
     if IS_CRAWLING:
