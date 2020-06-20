@@ -16,6 +16,6 @@ def players(requests):
 		return None
 
 	IS_CRAWLING = True
-	crawl.crawl_players()
+	crawl.crawl_NBA_players()
 	IS_CRAWLING = False
 	return None

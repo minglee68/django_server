@@ -1,6 +1,5 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
-import re
 
 DRIVER_PATH = "D:\Program\chromedriver.exe"    # Set your chronium path
 ORIG_URL = "https://www.basketball-reference.com"
@@ -13,7 +12,7 @@ chrome_options.add_argument('--disable-gpu')
 chrome_options.add_argument('--disable-dev-shm-usage')
 chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-def crawl_players():
+def crawl_NBA_players():
 	from string import ascii_lowercase
 
 	global ORIG_URL
@@ -78,7 +77,60 @@ def crawl_players():
 
 	return player_list, error_list
 
-def crawl_gamePlayerStat():
+def crawl_KBL_players():
+	import datetime
+
+	global ORIG_URL
+	global DRIVER_PATH
+	global chrome_options
+	driver = webdriver.Chrome(DRIVER_PATH, options=chrome_options)
+
+	ORIG_URL = "https://www.kbl.or.kr"
+	temp_url = ORIG_URL + "/players/player_list.asp"
+
+	player_list = []
+
+	driver.get(temp_url)
+	html = driver.page_source
+	soup = BeautifulSoup(html, 'html.parser')
+	for team in soup.select("div.srch_team li"):
+		link_t = team.find('a').attrs['href']
+
+		for flag2 in range(0, 2):
+			link = "?flag2=" + str(flag2) + "&" + link_t.split('&')[-1]
+			url = temp_url + link
+
+			driver.get(url)
+			html = driver.page_source
+			soup = BeautifulSoup(html, 'html.parser')
+
+			team_name = soup.select("div.seqlist > dl > dd")[0].get_text()
+			for player in soup.select("div.seqlist li"):
+				player_data = {}
+
+				link = player.find('a').attrs['href']
+				player_data['name'] = player.get_text().strip().split('[')[0]
+				player_data['position'] = "".join(player.get_text().split()).split('[')[-1].split(']')[0]
+
+				driver.get(ORIG_URL + link)
+				html = driver.page_source
+				soup = BeautifulSoup(html, 'html.parser')
+
+				player_data['age'] = datetime.date.today().year - int(soup.select('.birth')[0].get_text().split('.')[0]) + 1
+				player_data['height'] = int(float(soup.select('.stature')[0].get_text().split('c')[0]))
+				player_data['img'] = ORIG_URL + soup.select("div.frame_g img")[0].attrs['src']
+				player_data['team'] = team_name
+
+				player_list.append(player_data)
+
+				if DEBUG:
+					print(player_data['name'], end=' ')
+					print(player_data['position'], end=' ')
+					print(str(player_data['height']) + " " + str(player_data['age']))
+
+	return player_list
+
+def crawl_NBA_gamePlayerStat():
 	day_list = ["october", "november", "december", "january", "february", "march", "april", "may", "june"]
 	year_list = range(2014, 2019)
 
@@ -139,8 +191,11 @@ def crawl_gamePlayerStat():
 				game_data_list.append(game_data)
 	return game_data_list
 
+def crawl_KBL_gamePlayerStat():
+	pass
+
 if __name__ == "__main__":
 	import json
-	data = crawl_players()
-	#data = crawl_gamePlayerStat()
+	data = crawl_KBL_players()
+	#data = crawl_NBA_gamePlayerStat()
 	print(json.dumps(data, indent=4))
