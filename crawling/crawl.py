@@ -149,6 +149,7 @@ def crawl_NBA_gamePlayerStat():
 				if DEBUG:
 					print(link)
 				game_data = {}
+				quarters = {'home': {}, 'away': {}}
 				link = link.attrs['href']
 				game_data['date'] = link.split('/')[-1][:8]
 
@@ -157,36 +158,43 @@ def crawl_NBA_gamePlayerStat():
 				soup = BeautifulSoup(html, 'html.parser')
 
 				is_home = False
-				for table in soup.select(".now_sortable"):
-					if not table.get('id').endswith("-game-basic"):
-						continue
+				for table in soup.select(".sortable"):
+					if table.get('id').endswith("-game-basic"):
+						game = {}
+						game["team"] = table.find("caption").get_text().split('(')[0].strip()
+						team_list = []
+						for row in table.select("tbody tr"):
+							if row.attrs.get('class') is not None:
+								continue
 
-					game = {}
-					game["team"] = table.find("caption").get_text().split('(')[0].strip()
-					team_list = []
-					for row in table.select("tbody tr"):
-						if row.attrs.get('class') is not None:
+							player = {}
+							player['name'] = row.find('th').get_text()
+							for col in row.select("td"):
+								player[col.attrs["data-stat"]] = col.get_text()
+
+							team_list.append(player)
+						game["players"] = team_list
+
+						if is_home:
+							game_data['home'] = game
+						else:
+							game_data['away'] = game
+
+						is_home = not is_home
+
+					elif table.get('id').endswith("-basic"):
+						quarter = table.get('id').split('-')[2]
+						quarter_num = int(quarter[1]) if quarter.startswith('q') else ((int(quarter[2]) + 4) if quarter.startswith('ot') else 0)
+						if quarter_num == 0:
 							continue
 
-						player = {}
-						player['name'] = row.find('th').get_text()
-						for col in row.select("td"):
-							player[col.attrs["data-stat"]] = col.get_text()
-
-						team_list.append(player)
-					game["players"] = team_list
-
-					if is_home:
-						if game_data.get('home'):
-							print("error")
-						game_data['home'] = game
-					else:
-						if game_data.get('away'):
-							print("error")
-						game_data['away'] = game
-
-					is_home = not is_home
+						points = sum([int(value.get_text()) for value in table.select('td[data-stat=pts]')[:-1]])
+						quarters['home' if not is_home else 'away']['q' + str(quarter_num)] = points
+				game_data['points'] = quarters
 				game_data_list.append(game_data)
+				break
+			break
+		break
 	return game_data_list
 
 def crawl_KBL_gamePlayerStat():
@@ -224,6 +232,18 @@ def crawl_KBL_gamePlayerStat():
 				game['away']['team'] = away_team
 				game['home'] = {}
 				game['home']['team'] = home_team
+
+				quarters = {"home": {}, "away": {}}
+				quarter_table = soup.select('.game_result_board table tbody tr')
+				for quarter_num in range(1, 6):
+					home_points = int(quarter_table[0].select('td')[quarter_num].get_text())
+					if not (quarter_num == 5 and home_points == 0):
+						quarters["home"]["q" + str(quarter_num)] = home_points
+
+					away_points = quarter_table[1].select('td')[quarter_num].get_text()
+					if not (quarter_num == 5 and away_points == 0):
+						quarters["away"]["q" + str(quarter_num)] = away_points
+				game['points'] = quarters
 
 				link = soup.select("#subcontents > iframe")[0].attrs['src']
 				url = ORIG_URL + "/schedule/today" + link[1:]
@@ -283,4 +303,4 @@ if __name__ == "__main__":
 	import json
 	# data = crawl_KBL_players()
 	# data = crawl_KBL_gamePlayerStat()
-	# print(json.dumps(data, indent=4))
+	print(json.dumps(data, indent=4))
