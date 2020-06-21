@@ -23,9 +23,9 @@
 
 <body>
   <nav id="header">
-	  <button type="button" class="btn btn-default" onclick="location.href='{% url "basketball:leagues" %}'">League</button>
-	<button class="btn btn-default" onclick="location.href='{% url "basketball:teams" %}'">Team</button>
-	<button class="btn btn-default" onclick="location.href='{% url "basketball:players" %}'">Player</button>
+    <button type="button" class="btn btn-default" onclick="location.href='{% url "basketball:leagues" %}'">League</button>
+	  <button class="btn btn-default" onclick="location.href='{% url "basketball:teams" %}'">Team</button>
+	  <button class="btn btn-default" onclick="location.href='{% url "basketball:players" %}'">Player</button>
   </nav>
 
   <hr>
@@ -136,7 +136,7 @@
         function getNBAPlayer(nbalist){
           var name1 = nbalist.innerText;
           $.ajax({
-            url: '{% url "basketball:get_player_list" %}',
+            url: '{% url "basketball:get_player_information" %}',
             data: {
               'player_name': name1
             },
@@ -145,12 +145,13 @@
             success: function (data) {
               $("#NBA_Player_info").empty();
               var html = '';
-              data = JSON.parse(data);
-              html += '<span class="name">' + data[0].name + '</span>';
-              html += '<span class="age"> Age : ' + data[0].age + ' years old</span>';
-              html += '<span class="other"> Height : ' + data[0].height + 'cm</span>';
-              html += '<span class="other"> Weight : ' + data[0].weight + 'kg</span>';
-              html += '<span class="other"> Position : ' + data[0].position + '</span>';
+              //data = JSON.parse(data);
+              html += '<span class="name">' + data.name + '</span>';
+              html += '<span class="age"> Age : ' + data.age + ' years old</span>';
+              html += '<span class="other"> Height : ' + data.height + 'cm</span>';
+              html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
+              html += '<span class="other"> Position : ' + data.position + '</span>';
+              html += '<span class="other"> Team : ' + data.team + '</span>';
               $("#NBA_Player_info").append(html);
             },
             errors: function (e) { alert(e); }
@@ -160,7 +161,6 @@
             data: {'player_name': name1},
             dataType: 'json',
             success: function(data){
-              console.log(data);
               var newDataset = {
                 label: name1,
                 data: data.chart_data,
@@ -178,7 +178,7 @@
         function getKBLPlayer(kbllist){
           var name2 = kbllist.innerText;
           $.ajax({
-            url: '{% url "basketball:get_player_list" %}',
+            url: '{% url "basketball:get_player_information" %}',
             data: {
               'player_name': name2
             },
@@ -187,12 +187,13 @@
             success: function (data) {
               $("#KBL_Player_info").empty();
               var html = '';
-              data = JSON.parse(data);
-              html += '<span class="name">' + data[0].name + '</span>';
-              html += '<span class="age"> Age : ' + data[0].age + ' years old</span>';
-              html += '<span class="other"> Height : ' + data[0].height + 'cm</span>';
-              html += '<span class="other"> Weight : ' + data[0].weight + 'kg</span>';
-              html += '<span class="other"> Position : ' + data[0].position + '</span>';
+              //data = JSON.parse(data);
+              html += '<span class="name">' + data.name + '</span>';
+              html += '<span class="age"> Age : ' + data.age + ' years old</span>';
+              html += '<span class="other"> Height : ' + data.height + 'cm</span>';
+              html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
+              html += '<span class="other"> Position : ' + data.position + '</span>';
+              html += '<span class="other"> Team : ' + data.team + '</span>';
               $("#KBL_Player_info").append(html);
             },
             errors: function (e) { alert(e); }
@@ -202,7 +203,6 @@
             data: {'player_name': name2},
             dataType: 'json',
             success: function(data){
-              console.log(data);
               var newDataset = {
                 label: name2,
                 data: data.chart_data,

@@ -4,6 +4,7 @@ import datetime
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+from django.forms.models import model_to_dict
 
 from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat
 from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team
@@ -133,6 +134,28 @@ def get_player_stats(request):
 
     return JsonResponse(context)
 
+def get_player_information(request):
+    player_name = request.GET.get('player_name', None)
+    player_obj = Player.objects.get(name=player_name)
+    player_position_list = Playerposition.objects.filter(playerid=player_obj)
+    try:
+        player_team_obj = Playerteam.objects.filter(playerid=player_obj).order_by('seasonid').last()
+        player_team = player_team_obj.teamid.name
+    except:
+        player_team = ""
+        print('None odject')
+
+    player_position = []
+    for i in player_position_list:
+        player_position.append(i.positionid.type)
+    player_position = ', '.join(player_position)
+    player_obj = model_to_dict(player_obj)
+
+    player_obj['position'] = player_position
+    player_obj['team'] = player_team
+
+    return JsonResponse(player_obj)
+
 def crawl_nba_player(request):
     global IS_CRAWLING
     if IS_CRAWLING:
@@ -238,7 +261,9 @@ def crawl_kbl_player(request):
 
     IS_CRAWLING = True
     player_list = crawl_KBL_players()
-    print(len(player_list))
+    with open('kbl_player_data.txt', 'w') as outfile:
+        json.dump(player_list, outfile)
+    '''
     for player in player_list:
         try:
             player_object = Player.objects.get(name=player['name'])
@@ -257,7 +282,7 @@ def crawl_kbl_player(request):
             except Playerposition.DoesNotExist:
                 player_position_object = Playerposition(playerid=player_object, positionid=position_object)
                 player_position_object.save()
-
+    '''
     IS_CRAWLING = False
     return render(request, 'basketball/players.html')
 
