@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.forms.models import model_to_dict
+from django.db.models import Q
 
-from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat
-from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team
+from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_NBA_quarter_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat, crawl_KBL_quarter_gamePlayerStat
+from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team, Player_stat, Quarter, Team_stat
 
 
 IS_CRAWLING = False		# Read-only!!
@@ -20,6 +21,15 @@ def check_player_name(name):
         if len(player_list) == 0:
             player_list = None
     return player_list
+
+def check_team_name(name):
+    if name == '' or name == None:
+        team_list = None
+    else:
+        team_list = Team.objects.filter(name__icontains=name)
+        if len(team_list) == 0:
+            team_list = None
+    return team_list
 
 def check_kbl_team_name(name):
     if name.find('KGC') != -1:
@@ -81,54 +91,81 @@ def get_player_list(request):
     # return JsonResponse({'data': player_list})
     return JsonResponse(json.dumps(player_list, ensure_ascii=False), safe=False)
 
+def get_team_list(request):
+    team_name = request.GET.get('team_name', None)
+    team_list = check_team_name(team_name)
+    if team_list != None:
+        team_list = list(team_list.values())
+    # return JsonResponse({'data': player_list})
+    return JsonResponse(json.dumps(team_list, ensure_ascii=False), safe=False)
+
 def get_player_stats(request):
-    labels = ['MP', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS', 'PTS']
+    labels = ['MP', 'FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS', 'PTS']
     stats = [0,]
     player_name = request.GET.get('player_name', None)
     player_list = check_player_name(player_name)
-    playerid = player_list[0].playerid
+    # playerid = player_list[0].playerid
+    name = player_list[0].name
     try:
-        playerstats = Gameplayerstat.objects.filter(playerid=player_list[0])
-        stats = [0 for _ in range(15)]
+        # playerstats = Gameplayerstat.objects.filter(playerid=player_list[0])
+        playerstats = Player_stat.objects.filter(player_name=name)
+        stats = [0 for _ in range(18)]
         for playerstat in playerstats:
             stats[0] += 0 #int(playerstat.mp)
             stats[1] += int(playerstat.fg)
             stats[2] += int(playerstat.fga)
-            stats[3] += int(playerstat.number_3p)
-            stats[4] += int(playerstat.number_3pa)
-            stats[5] += int(playerstat.ft)
-            stats[6] += int(playerstat.fta)
-            stats[7] += int(playerstat.orb)
-            stats[8] += int(playerstat.drb)
-            stats[9] += int(playerstat.ast)
-            stats[10] += int(playerstat.pf)
-            stats[11] += int(playerstat.st)
-            stats[12] += int(playerstat.tov)
-            stats[13] += int(playerstat.bs)
-            stats[14] += int(playerstat.pts)
-        for i in range(15):
+            stats[3] += int(playerstat.fgp)
+            stats[4] += int(playerstat.number_3p)
+            stats[5] += int(playerstat.number_3pa)
+            stats[6] += int(playerstat.number_3pp)
+            stats[7] += int(playerstat.ft)
+            stats[8] += int(playerstat.fta)
+            stats[9] += int(playerstat.ftp)
+            stats[10] += int(playerstat.orb)
+            stats[11] += int(playerstat.drb)
+            stats[12] += int(playerstat.ast)
+            stats[13] += int(playerstat.pf)
+            stats[14] += int(playerstat.st)
+            stats[15] += int(playerstat.tov)
+            stats[16] += int(playerstat.bs)
+            stats[17] += int(playerstat.pts)
+        for i in range(18):
             stats[i] = stats[i] / len(playerstats)
-        '''
-        stats = [
-            0,#playerstats[0].mp,
-            playerstats[0].fg,
-            playerstats[0].fga,
-            playerstats[0].number_3p,
-            playerstats[0].number_3pa,
-            playerstats[0].ft,
-            playerstats[0].fta,
-            playerstats[0].orb,
-            playerstats[0].drb,
-            playerstats[0].ast,
-            playerstats[0].pf,
-            playerstats[0].st,
-            playerstats[0].tov,
-            playerstats[0].bs,
-            playerstats[0].pts
-        ]
-        '''
-    except:
-        print('no data');
+    except Player_stat.DoesNotExist:
+        print('player_stat_no data');
+
+    context = {'chart_labels':labels, 'chart_data':stats}
+
+    return JsonResponse(context)
+
+def get_team_stats(request):
+    labels = ['FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS']
+    stats = [0,]
+    team_name = request.GET.get('team_name', None)
+    try:
+        teamstats = Team_stat.objects.filter(team_name=team_name)
+        stats = [0 for _ in range(16)]
+        for teamstat in teamstats:
+            stats[0] += int(teamstat.fg)
+            stats[1] += int(teamstat.fga)
+            stats[2] += int(teamstat.fgp)
+            stats[3] += int(teamstat.number_3p)
+            stats[4] += int(teamstat.number_3pa)
+            stats[5] += int(teamstat.number_3pp)
+            stats[6] += int(teamstat.ft)
+            stats[7] += int(teamstat.fta)
+            stats[8] += int(teamstat.ftp)
+            stats[9] += int(teamstat.orb)
+            stats[10] += int(teamstat.drb)
+            stats[11] += int(teamstat.ast)
+            stats[12] += int(teamstat.pf)
+            stats[13] += int(teamstat.st)
+            stats[14] += int(teamstat.tov)
+            stats[15] += int(teamstat.bs)
+        for i in range(16):
+            stats[i] = stats[i] / len(teamstats)
+    except Team_stat.DoesNotExist:
+        print('team_stat_no data');
 
     context = {'chart_labels':labels, 'chart_data':stats}
 
@@ -155,6 +192,17 @@ def get_player_information(request):
     player_obj['team'] = player_team
 
     return JsonResponse(player_obj)
+
+def get_team_player_list(request):
+    team_name = request.GET.get('team_name', None)
+    team_obj = Team.objects.get(name=team_name)
+    player_team_list = Playerteam.objects.filter(Q(teamid=team_obj)&(Q(seasonid=42)|Q(seasonid=47)))
+    team_player_list = []
+    for list in player_team_list:
+        pname = Player.objects.get(playerid=list.playerid.playerid).name
+        team_player_list.append(pname)
+    # return JsonResponse({'data': player_list})
+    return JsonResponse(json.dumps(team_player_list, ensure_ascii=False), safe=False)
 
 def crawl_nba_player(request):
     global IS_CRAWLING
@@ -191,9 +239,7 @@ def crawl_nba_game_player_stat(request):
         return None
 
     IS_CRAWLING = True
-    '''
-    game_data_list = crawl_NBA_gamePlayerStat()
-    '''
+    # game_data_list = crawl_NBA_quarter_gamePlayerStat()
     with open('nba_data.txt', 'r') as json_file:
         game_data_list = json.load(json_file)
     '''
@@ -212,8 +258,7 @@ def crawl_nba_game_player_stat(request):
         try:
             season_object = Season.objects.get(year=season, type='NBA')
         except Season.DoesNotExist:
-            season_object = Season(year=season, type='NBA')
-            season_object.save()
+            continue
         
         date = datetime.date(int(game['date'][:4]), month, day)
         home_name = game['home']['team']
@@ -227,9 +272,21 @@ def crawl_nba_game_player_stat(request):
         try:
             game_object = Game.objects.get(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
         except Game.DoesNotExist:
-            game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
-            game_object.save()
-        
+            continue
+        for quarter in game['points']['home']:
+            try:
+                quarter_object = Quarter.objects.get(gameid=game_object, teamid=home_object, quarternumber=quarter[1])
+            except Quarter.DoesNotExist:
+                quarter_object = Quarter(gameid=game_object, teamid=home_object, quarternumber=quarter[1], score=game['points']['home'][quarter])
+                quarter_object.save()
+        for quarter in game['points']['away']:
+            try:
+                quarter_object = Quarter.objects.get(gameid=game_object, teamid=away_object, quarternumber=quarter[1])
+            except Quarter.DoesNotExist:
+                quarter_object = Quarter(gameid=game_object, teamid=away_object, quarternumber=quarter[1], score=game['points']['away'][quarter])
+                quarter_object.save()
+
+        '''
         for player in game['away']['players']:
             if (len(player) < 10):
                 continue
@@ -250,6 +307,8 @@ def crawl_nba_game_player_stat(request):
 
                 gameplayerstat_object = Gameplayerstat(playerid=player_object, gameid=game_object, mp=str(second), fg=player['fg'], fga=player['fga'], number_3p=player['fg3'], number_3pa=player['fg3a'], ft=player['ft'], fta=player['fta'], orb=player['orb'], drb=player['drb'], ast=player['ast'], pf=player['pf'], st=player['stl'], tov=player['tov'], bs=player['blk'], pts=player['pts'])
                 gameplayerstat_object.save()
+        '''
+
 
     IS_CRAWLING = False
     return render(request, 'basketball/players.html')
@@ -293,11 +352,12 @@ def crawl_kbl_game_player_stat(request):
 
     IS_CRAWLING = True
     # game_data_list = crawl_KBL_gamePlayerStat()
-    with open('data.txt', 'r') as json_file:
+    # game_data_list = crawl_KBL_quarter_gamePlayerStat()
+    with open('kbl_data.txt', 'r') as json_file:
         game_data_list = json.load(json_file)
 
     '''
-    with open('data.txt', 'w') as outfile:
+    with open('kbl_data.txt', 'w') as outfile:
         json.dump(game_data_list, outfile)
     '''
     for game in game_data_list:
@@ -311,6 +371,7 @@ def crawl_kbl_game_player_stat(request):
         try:
             season_object = Season.objects.get(year=season, type='KBL')
         except Season.DoesNotExist:
+            continue
             season_object = Season(year=season, type='KBL')
             season_object.save()
         
@@ -322,8 +383,23 @@ def crawl_kbl_game_player_stat(request):
 
         home_object = Team.objects.get(teamid=home_id)
         away_object = Team.objects.get(teamid=away_id)
-        game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
-        game_object.save()
+        game_object = Game.objects.get(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+        # game_object.save()
+
+        for quarter in game['points']['home']:
+            try:
+                quarter_object = Quarter.objects.get(gameid=game_object, teamid=home_object, quarternumber=quarter[1])
+            except Quarter.DoesNotExist:
+                quarter_object = Quarter(gameid=game_object, teamid=home_object, quarternumber=quarter[1], score=game['points']['home'][quarter])
+                quarter_object.save()
+        for quarter in game['points']['away']:
+            try:
+                quarter_object = Quarter.objects.get(gameid=game_object, teamid=away_object, quarternumber=quarter[1])
+            except Quarter.DoesNotExist:
+                quarter_object = Quarter(gameid=game_object, teamid=away_object, quarternumber=quarter[1], score=game['points']['away'][quarter])
+                quarter_object.save()
+
+        '''
         
         for team in ['home', 'away']:
             for player in game[team]['players']:
@@ -350,6 +426,7 @@ def crawl_kbl_game_player_stat(request):
 
                     gameplayerstat_object = Gameplayerstat(playerid=player_object, gameid=game_object, mp=str(second), fg=player['fg'], fga=player['fga'], number_3p=player['fg3'], number_3pa=player['fg3a'], ft=player['ft'], fta=player['fta'], orb=player['orb'], drb=player['drb'], ast=player['ast'], pf=player['pf'], st=player['stl'], tov=player['tov'], bs=player['blk'], pts=player['pts'])
                     gameplayerstat_object.save()
+        '''
 
     IS_CRAWLING = False
     return render(request, 'basketball/players.html')

@@ -47,26 +47,26 @@
           </div>
         </div>
       </form>
-      <div class="player_list" id="NBA_player_list">
+      <div class="player_list" id="NBA_team_list">
 	<script>
 	  function NBA_changed() {
-	    var player_name = $("#NBA_search").val();
+	    var team_name = $("#NBA_search").val();
 
 	    $.ajax({
-		    url: '{% url "basketball:get_player_list" %}',
+		    url: '{% url "basketball:get_team_list" %}',
 	      data: {
-		'player_name': player_name
+		'team_name': team_name
 	      },
 	      contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 	      dataType: 'json',
 	      success: function (data) {
-		$("#NBA_player_list").empty();
+		$("#NBA_team_list").empty();
 		var html = '';
 		data = JSON.parse(data);
 		for (var i=0; i < data.length; i++) {
-		  html += '<div class="NBA_list" onclick="getNBAPlayer(this)"><span>' + data[i].name + '</span></div>';
+		  html += '<div class="NBA_list" onclick="getNBATeam(this)"><span>' + data[i].name + '</span></div>';
 		}
-		$("#NBA_player_list").append(html);
+		$("#NBA_team_list").append(html);
 	      },
 	      errors: function (e) { alert(e); }
 	    });
@@ -78,7 +78,7 @@
     <div id="NBA_detail">
       <div class="detail_top">
         <img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
-        <div class="detail_name" id="NBA_Player_info">
+        <div class="detail_name" id="NBA_Team_info">
           <span class="name">Player 1</span>
           <span class="age">Age: 20 years old</span>
           <br>
@@ -94,7 +94,7 @@
       </div>
       <script>
       var chrtdata = {
-          labels:  ['MP', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS', 'PTS'],
+          labels:  ['FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS'],
           datasets: [{
             label: 'NBA empty',
             data: [0,],
@@ -111,7 +111,7 @@
         }; // chrt data
 
         window.onload = function(){
-          var ctx = document.getElementById('player_chart').getContext('2d');
+          var ctx = document.getElementById('team_chart').getContext('2d');
           window.myChart = new Chart(ctx, {
             type: 'horizontalBar',
             data: chrtdata,
@@ -133,32 +133,29 @@
           }); // chart
         } // window.onload
 
-        function getNBAPlayer(nbalist){
+        function getNBATeam(nbalist){
           var name1 = nbalist.innerText;
           $.ajax({
-            url: '{% url "basketball:get_player_information" %}',
+            url: '{% url "basketball:get_team_player_list" %}',
             data: {
-              'player_name': name1
+              'team_name': name1
             },
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: 'json',
             success: function (data) {
-              $("#NBA_Player_info").empty();
+              $("#NBA_Team_info").empty();
               var html = '';
-              //data = JSON.parse(data);
-              html += '<span class="name">' + data.name + '</span>';
-              html += '<span class="age"> Age : ' + data.age + ' years old</span>';
-              html += '<span class="other"> Height : ' + data.height + 'cm</span>';
-              html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
-              html += '<span class="other"> Position : ' + data.position + '</span>';
-              html += '<span class="other"> Team : ' + data.team + '</span>';
-              $("#NBA_Player_info").append(html);
+              data = JSON.parse(data);
+              for (var i=0; i < data.length; i++) {
+          		  html += '<span class="other">' + data[i] + '</span>';
+          		}
+              $("#NBA_Team_info").append(html);
             },
             errors: function (e) { alert(e); }
           });//ajax
           $.ajax({
-            url: '{% url "basketball:get_player_stats" %}',
-            data: {'player_name': name1},
+            url: '{% url "basketball:get_team_stats" %}',
+            data: {'team_name': name1},
             dataType: 'json',
             success: function(data){
               var newDataset = {
@@ -175,32 +172,32 @@
           }); // ajax
         }//fucntion getPlayer
 
-        function getKBLPlayer(kbllist){
+        function getKBLTeam(kbllist){
           var name2 = kbllist.innerText;
           $.ajax({
-            url: '{% url "basketball:get_player_information" %}',
+            url: '{% url "basketball:get_team_player_list" %}',
             data: {
-              'player_name': name2
+              'team_name': name2
             },
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: 'json',
             success: function (data) {
-              $("#KBL_Player_info").empty();
+              $("#KBL_Team_info").empty();
               var html = '';
-              //data = JSON.parse(data);
+              data = JSON.parse(data);
               html += '<span class="name">' + data.name + '</span>';
               html += '<span class="age"> Age : ' + data.age + ' years old</span>';
               html += '<span class="other"> Height : ' + data.height + 'cm</span>';
               html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
               html += '<span class="other"> Position : ' + data.position + '</span>';
               html += '<span class="other"> Team : ' + data.team + '</span>';
-              $("#KBL_Player_info").append(html);
+              $("#KBL_Team_info").append(html);
             },
             errors: function (e) { alert(e); }
           });//ajax
           $.ajax({
-            url: '{% url "basketball:get_player_stats" %}',
-            data: {'player_name': name2},
+            url: '{% url "basketball:get_team_stats" %}',
+            data: {'team_name': name2},
             dataType: 'json',
             success: function(data){
               var newDataset = {
@@ -219,14 +216,13 @@
       </script>
     </div>
     <div>
-      <canvas id="player_chart" width="500" height="800"></canvas>
+      <canvas id="team_chart" width="500" height="800"></canvas>
     </div>
     <div id="KBL_detail">
       <div class="detail_top">
         <img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
-        <div class="detail_name" id="KBL_Player_info">
-          <span class="name">Player 2</span>
-          <span class="age">Age: 20 years old</span>
+        <div class="detail_name" id="KBL_Team_info">
+          <span class="name">Team 2</span>
           <br>
           <span class="other">Other Info</span>
           <span class="other">Other Info</span>
@@ -255,26 +251,26 @@
           </div>
         </div>
       </form>
-      <div class="player_list" id="KBL_player_list">
+      <div class="player_list" id="KBL_team_list">
 	<script>
 	  function KBL_changed() {
-	    var player_name = $("#KBL_search").val();
+	    var team_name = $("#KBL_search").val();
 
 	    $.ajax({
-		    url: '{% url "basketball:get_player_list" %}',
+		    url: '{% url "basketball:get_team_list" %}',
 	      data: {
-		'player_name': player_name
+		'team_name': team_name
 	      },
 	      contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 	      dataType: 'json',
 	      success: function (data) {
-		$("#KBL_player_list").empty();
+		$("#KBL_team_list").empty();
 		var html = '';
 		data = JSON.parse(data);
 		for (var i=0; i < data.length; i++) {
-		  html += '<div class="KBL_list" onclick="getKBLPlayer(this)"><span>' + data[i].name + '</span></div>';
+		  html += '<div class="KBL_list" onclick="getKBLTeam(this)"><span>' + data[i].name + '</span></div>';
 		}
-		$("#KBL_player_list").append(html);
+		$("#KBL_team_list").append(html);
 	      },
 	      errors: function (e) { alert(e); }
 	    });

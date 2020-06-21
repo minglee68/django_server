@@ -128,6 +128,65 @@ class Team(models.Model):
     class Meta:
         db_table = 'team'
 
+class Player_stat(models.Model):
+
+    year = models.CharField(db_column='Year', max_length=5)
+    type = models.CharField(db_column='Type', max_length=128)
+    player_name = models.CharField(db_column='Player_Name', max_length=128)
+    player_imageurl = models.CharField(db_column='Player_ImageURL', max_length=2083)
+    team_name = models.CharField(db_column='Team_Name', max_length=128)
+    height = models.IntegerField(db_column='Height')
+    weight = models.IntegerField(db_column='Weight')
+    age = models.IntegerField(db_column='Age')
+    mp = models.DecimalField(db_column='MP', decimal_places=0, max_digits=32)
+    fg = models.DecimalField(db_column='FG', decimal_places=0, max_digits=32)
+    fga = models.DecimalField(db_column='FGA', decimal_places=0, max_digits=32)
+    fgp = models.DecimalField(db_column='FGP', decimal_places=4, max_digits=39)
+    number_3p = models.DecimalField(db_column='3P', decimal_places=0, max_digits=32)
+    number_3pa = models.DecimalField(db_column='3PA', decimal_places=0, max_digits=32)
+    number_3pp = models.DecimalField(db_column='3PP', decimal_places=4, max_digits=39)
+    ft = models.DecimalField(db_column='FT', decimal_places=0, max_digits=32)
+    fta = models.DecimalField(db_column='FTA', decimal_places=0, max_digits=32)
+    ftp = models.DecimalField(db_column='FTP', decimal_places=4, max_digits=39)
+    orb = models.DecimalField(db_column='ORB', decimal_places=0, max_digits=32)
+    drb = models.DecimalField(db_column='DRB', decimal_places=0, max_digits=32)
+    ast = models.DecimalField(db_column='AST', decimal_places=0, max_digits=32)
+    pf = models.DecimalField(db_column='PF', decimal_places=0, max_digits=32)
+    st = models.DecimalField(db_column='ST', decimal_places=0, max_digits=32)
+    tov = models.DecimalField(db_column='TOV', decimal_places=0, max_digits=32)
+    bs = models.DecimalField(db_column='BS', decimal_places=0, max_digits=32)
+    pts = models.DecimalField(db_column='PTS', decimal_places=0, max_digits=32)
+
+    class Meta:
+        managed = False
+        db_table = 'player_stat'
+
+class Team_stat(models.Model):
+
+    year = models.CharField(db_column='Year', max_length=5)
+    team_name = models.CharField(db_column='Team_Name', max_length=128)
+    fg = models.DecimalField(db_column='FG', decimal_places=0, max_digits=54)
+    fga = models.DecimalField(db_column='FGA', decimal_places=0, max_digits=54)
+    fgp = models.DecimalField(db_column='FGP', decimal_places=4, max_digits=61)
+    number_3p = models.DecimalField(db_column='3P', decimal_places=0, max_digits=54)
+    number_3pa = models.DecimalField(db_column='3PA', decimal_places=0, max_digits=54)
+    number_3pp = models.DecimalField(db_column='3PP', decimal_places=4, max_digits=61)
+    ft = models.DecimalField(db_column='FT', decimal_places=0, max_digits=54)
+    fta = models.DecimalField(db_column='FTA', decimal_places=0, max_digits=54)
+    ftp = models.DecimalField(db_column='FTP', decimal_places=4, max_digits=61)
+    orb = models.DecimalField(db_column='ORB', decimal_places=0, max_digits=54)
+    drb = models.DecimalField(db_column='DRB', decimal_places=0, max_digits=54)
+    ast = models.DecimalField(db_column='AST', decimal_places=0, max_digits=54)
+    pf = models.DecimalField(db_column='PF', decimal_places=0, max_digits=54)
+    st = models.DecimalField(db_column='ST', decimal_places=0, max_digits=54)
+    tov = models.DecimalField(db_column='TOV', decimal_places=0, max_digits=54)
+    bs = models.DecimalField(db_column='BS', decimal_places=0, max_digits=54)
+
+    class Meta:
+        managed = False
+        db_table = 'team_stat'
+
+
 '''
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=150)
