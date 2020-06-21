@@ -2,9 +2,10 @@ import json
 import datetime
 
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.urls import reverse
 
-from .crawl import crawl_players, crawl_gamePlayerStat
+from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat
 from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team
 
 
@@ -19,11 +20,44 @@ def check_player_name(name):
             player_list = None
     return player_list
 
+def check_kbl_team_name(name):
+    if name.find('KGC') != -1:
+        team_id = 31
+    elif name.find('KT') != -1:
+        team_id = 32
+    elif name.find('LG') != -1:
+        team_id = 33
+    elif name.find('KCC') != -1:
+        team_id = 36
+    elif name.find('SK') != -1:
+        team_id = 38
+    elif name.find('DB') != -1 or name == '원주동부':
+        team_id = 40
+    elif name == '서울삼성':
+        team_id = 37
+    elif name == '울산현대모비스' or name == '울산모비스':
+        team_id = 39
+    elif name == '인천전자랜드':
+        team_id = 35
+    elif name == '고양오리온' or name == '고양오리온스':
+        team_id = 34
+    else:
+        return None
+
+    return team_id
+
 # Create your views here.
 def index(request):
-    city_list = City.objects.all()
-    context = { 'city_list': city_list }
-    return render(request, 'basketball/b.html', context)
+    return HttpResponseRedirect(reverse('basketball:players'))
+
+def players(request):
+    return render(request, 'basketball/players.html')
+
+def teams(request):
+    return render(request, 'basketball/teams.html')
+
+def leagues(request):
+    return render(request, 'basketball/leagues.html')
 
 def search_player(request):
     if request.method == 'POST':
@@ -99,31 +133,51 @@ def get_player_stats(request):
 
     return JsonResponse(context)
 
-def crawl_player(request):
+def crawl_nba_player(request):
     global IS_CRAWLING
     if IS_CRAWLING:
         return None
 
     IS_CRAWLING = True
-    player_list, error_list = crawl_players()
+    player_list, error_list = crawl_NBA_players()
     for player in player_list:
         try:
             player_object = Player.objects.get(name=player['name'])
         except Player.DoesNotExist:
-            continue
-        player_object.imageurl = player['img']
-        player_object.save()
+            player_object = Player(name=player['name'], height=player['height'], weight=player['weight'], age=player['age'], imageurl=player['img'])
+            player_object.save()
+        for position in player['position']:
+            try:
+                position_object = Position.objects.get(type=position)
+            except Position.DoesNotExist:
+                position_object = Position(type=position)
+                position_object.save()
+                
+            try:
+                player_position_object = Playerposition.objects.get(playerid=player_object, positionid=position_object)
+            except Playerposition.DoesNotExist:
+                player_position_object = Playerposition(playerid=player_object, positionid=position_object)
+                player_position_object.save()
 
     IS_CRAWLING = False
-    return None
+    return render(request, 'basketball/players.html')
 
-def crawl_game_player_stat(request):
+def crawl_nba_game_player_stat(request):
     global IS_CRAWLING
     if IS_CRAWLING:
         return None
 
     IS_CRAWLING = True
-    game_data_list = crawl_gamePlayerStat()
+    '''
+    game_data_list = crawl_NBA_gamePlayerStat()
+    '''
+    with open('nba_data.txt', 'r') as json_file:
+        game_data_list = json.load(json_file)
+    '''
+
+    with open('nba_data.txt', 'w') as outfile:
+        json.dump(game_data_list, outfile)
+    '''
     for game in game_data_list:
         year = int(game['date'][2:4])
         month = int(game['date'][4:6])
@@ -133,7 +187,7 @@ def crawl_game_player_stat(request):
         else:
             season = str(year - 1) + str(year)
         try:
-            season_object = Season.objects.get(year=season)
+            season_object = Season.objects.get(year=season, type='NBA')
         except Season.DoesNotExist:
             season_object = Season(year=season, type='NBA')
             season_object.save()
@@ -147,10 +201,13 @@ def crawl_game_player_stat(request):
             away_name = 'Charlotte Hornets'
         home_object = Team.objects.get(name=home_name)
         away_object = Team.objects.get(name=away_name)
-        game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
-        game_object.save()
+        try:
+            game_object = Game.objects.get(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+        except Game.DoesNotExist:
+            game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+            game_object.save()
         
-        for player in game['home']['players']:
+        for player in game['away']['players']:
             if (len(player) < 10):
                 continue
             try:
@@ -158,9 +215,9 @@ def crawl_game_player_stat(request):
             except Player.DoesNotExist:
                 continue
             try:
-                playerteam_object = Playerteam.objects.get(seasonid=season_object, teamid=home_object, playerid=player_object)
+                playerteam_object = Playerteam.objects.get(seasonid=season_object, teamid=away_object, playerid=player_object)
             except Playerteam.DoesNotExist:
-                playerteam_object = Playerteam(seasonid=season_object, teamid=home_object, playerid=player_object)
+                playerteam_object = Playerteam(seasonid=season_object, teamid=away_object, playerid=player_object)
                 playerteam_object.save()
             try:
                 gameplayerstat_object = Gameplayerstat.objects.get(gameid=game_object, playerid=player_object)
@@ -172,4 +229,102 @@ def crawl_game_player_stat(request):
                 gameplayerstat_object.save()
 
     IS_CRAWLING = False
-    return render(request, 'basketball/b.html')
+    return render(request, 'basketball/players.html')
+
+def crawl_kbl_player(request):
+    global IS_CRAWLING
+    if IS_CRAWLING:
+        return None
+
+    IS_CRAWLING = True
+    player_list = crawl_KBL_players()
+    print(len(player_list))
+    for player in player_list:
+        try:
+            player_object = Player.objects.get(name=player['name'])
+        except Player.DoesNotExist:
+            player_object = Player(name=player['name'], height=player['height'], weight=0, age=player['age'], imageurl=player['img'])
+            player_object.save()
+        for position in player['position']:
+            try:
+                position_object = Position.objects.get(type=position)
+            except Position.DoesNotExist:
+                position_object = Position(type=position)
+                position_object.save()
+                
+            try:
+                player_position_object = Playerposition.objects.get(playerid=player_object, positionid=position_object)
+            except Playerposition.DoesNotExist:
+                player_position_object = Playerposition(playerid=player_object, positionid=position_object)
+                player_position_object.save()
+
+    IS_CRAWLING = False
+    return render(request, 'basketball/players.html')
+
+def crawl_kbl_game_player_stat(request):
+    global IS_CRAWLING
+    if IS_CRAWLING:
+        return None
+
+    IS_CRAWLING = True
+    # game_data_list = crawl_KBL_gamePlayerStat()
+    with open('data.txt', 'r') as json_file:
+        game_data_list = json.load(json_file)
+
+    '''
+    with open('data.txt', 'w') as outfile:
+        json.dump(game_data_list, outfile)
+    '''
+    for game in game_data_list:
+        year = int(game['date'][2:4])
+        month = int(game['date'][4:6])
+        day = int(game['date'][6:])
+        if month > 8:
+            season = str(year) + str(year + 1)
+        else:
+            season = str(year - 1) + str(year)
+        try:
+            season_object = Season.objects.get(year=season, type='KBL')
+        except Season.DoesNotExist:
+            season_object = Season(year=season, type='KBL')
+            season_object.save()
+        
+        date = datetime.date(int(game['date'][:4]), month, day)
+        home_name = game['home']['team']
+        away_name = game['away']['team']
+        home_id = check_kbl_team_name(home_name)
+        away_id = check_kbl_team_name(away_name)
+
+        home_object = Team.objects.get(teamid=home_id)
+        away_object = Team.objects.get(teamid=away_id)
+        game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+        game_object.save()
+        
+        for team in ['home', 'away']:
+            for player in game[team]['players']:
+                if (len(player) < 10):
+                    continue
+                try:
+                    player_object = Player.objects.get(name=player['name'])
+                except Player.DoesNotExist:
+                    continue
+                if team == 'home':
+                    team_object = home_object
+                else:
+                    team_object = away_object
+                try:
+                    playerteam_object = Playerteam.objects.get(seasonid=season_object, teamid=team_object, playerid=player_object)
+                except Playerteam.DoesNotExist:
+                    playerteam_object = Playerteam(seasonid=season_object, teamid=team_object, playerid=player_object)
+                    playerteam_object.save()
+                try:
+                    gameplayerstat_object = Gameplayerstat.objects.get(gameid=game_object, playerid=player_object)
+                except:
+                    mp = player['mp'].split(':')
+                    second = int(mp[0]) * 60 + int(mp[1])
+
+                    gameplayerstat_object = Gameplayerstat(playerid=player_object, gameid=game_object, mp=str(second), fg=player['fg'], fga=player['fga'], number_3p=player['fg3'], number_3pa=player['fg3a'], ft=player['ft'], fta=player['fta'], orb=player['orb'], drb=player['drb'], ast=player['ast'], pf=player['pf'], st=player['stl'], tov=player['tov'], bs=player['blk'], pts=player['pts'])
+                    gameplayerstat_object.save()
+
+    IS_CRAWLING = False
+    return render(request, 'basketball/players.html')

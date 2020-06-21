@@ -23,9 +23,9 @@
 
 <body>
   <nav id="header">
-    <button type="button" class="btn btn-default">League</button>
-    <button class="btn btn-default">Team</button>
-    <button class="btn btn-default">Player</button>
+	  <button type="button" class="btn btn-default" onclick="location.href='{% url "basketball:leagues" %}'">League</button>
+	<button class="btn btn-default" onclick="location.href='{% url "basketball:teams" %}'">Team</button>
+	<button class="btn btn-default" onclick="location.href='{% url "basketball:players" %}'">Player</button>
   </nav>
 
   <hr>
