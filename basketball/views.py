@@ -104,10 +104,21 @@ def get_player_stats(request):
     stats = [0,]
     player_name = request.GET.get('player_name', None)
     player_list = check_player_name(player_name)
-    # playerid = player_list[0].playerid
     name = player_list[0].name
+    gameplays = {}
+    '''
     try:
-        # playerstats = Gameplayerstat.objects.filter(playerid=player_list[0])
+        gameplayerstats = Gameplayerstat.objects.filter(playerid=player_list[0])
+        for game in gameplayerstats:
+            if game.gameid.seasonid.year in gameplays:
+                gameplays[game.gameid.seasonid.year] += 1
+            else:
+                gameplays[game.gameid.seasonid.year] = 1
+    except Gameplayerstat.DoesNotExist:
+        print('game_player_stat no data')
+    '''
+
+    try:
         playerstats = Player_stat.objects.filter(player_name=name)
         stats = [0 for _ in range(18)]
         for playerstat in playerstats:
@@ -142,26 +153,29 @@ def get_team_stats(request):
     labels = ['FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS']
     stats = [0,]
     team_name = request.GET.get('team_name', None)
+    team_object = Team.objects.get(name=team_name)
     try:
         teamstats = Team_stat.objects.filter(team_name=team_name)
         stats = [0 for _ in range(16)]
         for teamstat in teamstats:
-            stats[0] += int(teamstat.fg)
-            stats[1] += int(teamstat.fga)
+            season_object = Season.objects.get(year=teamstat.year, type=teamstat.league_name[:3])
+            teamgames = Game.objects.filter(Q(seasonid=season_object)&(Q(homeid=team_object)|Q(awayid=team_object)))
+            stats[0] += int(teamstat.fg / len(teamgames))
+            stats[1] += int(teamstat.fga / len(teamgames))
             stats[2] += int(teamstat.fgp)
-            stats[3] += int(teamstat.number_3p)
-            stats[4] += int(teamstat.number_3pa)
+            stats[3] += int(teamstat.number_3p / len(teamgames))
+            stats[4] += int(teamstat.number_3pa / len(teamgames))
             stats[5] += int(teamstat.number_3pp)
-            stats[6] += int(teamstat.ft)
-            stats[7] += int(teamstat.fta)
+            stats[6] += int(teamstat.ft / len(teamgames))
+            stats[7] += int(teamstat.fta / len(teamgames))
             stats[8] += int(teamstat.ftp)
-            stats[9] += int(teamstat.orb)
-            stats[10] += int(teamstat.drb)
-            stats[11] += int(teamstat.ast)
-            stats[12] += int(teamstat.pf)
-            stats[13] += int(teamstat.st)
-            stats[14] += int(teamstat.tov)
-            stats[15] += int(teamstat.bs)
+            stats[9] += int(teamstat.orb / len(teamgames))
+            stats[10] += int(teamstat.drb / len(teamgames))
+            stats[11] += int(teamstat.ast / len(teamgames))
+            stats[12] += int(teamstat.pf / len(teamgames))
+            stats[13] += int(teamstat.st / len(teamgames))
+            stats[14] += int(teamstat.tov / len(teamgames))
+            stats[15] += int(teamstat.bs / len(teamgames))
         for i in range(16):
             stats[i] = stats[i] / len(teamstats)
     except Team_stat.DoesNotExist:
@@ -380,12 +394,18 @@ def crawl_kbl_game_player_stat(request):
         away_name = game['away']['team']
         home_id = check_kbl_team_name(home_name)
         away_id = check_kbl_team_name(away_name)
+        if home_id == None or away_id == None:
+            continue
 
         home_object = Team.objects.get(teamid=home_id)
         away_object = Team.objects.get(teamid=away_id)
-        game_object = Game.objects.get(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
-        # game_object.save()
+        try:
+            game_object = Game.objects.get(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+        except Game.DoesNotExist:
+            game_object = Game(homeid=home_object, awayid=away_object, seasonid=season_object, date=date)
+            game_object.save()
 
+        '''
         for quarter in game['points']['home']:
             try:
                 quarter_object = Quarter.objects.get(gameid=game_object, teamid=home_object, quarternumber=quarter[1])
@@ -398,9 +418,8 @@ def crawl_kbl_game_player_stat(request):
             except Quarter.DoesNotExist:
                 quarter_object = Quarter(gameid=game_object, teamid=away_object, quarternumber=quarter[1], score=game['points']['away'][quarter])
                 quarter_object.save()
-
         '''
-        
+
         for team in ['home', 'away']:
             for player in game[team]['players']:
                 if (len(player) < 10):
@@ -426,7 +445,6 @@ def crawl_kbl_game_player_stat(request):
 
                     gameplayerstat_object = Gameplayerstat(playerid=player_object, gameid=game_object, mp=str(second), fg=player['fg'], fga=player['fga'], number_3p=player['fg3'], number_3pa=player['fg3a'], ft=player['ft'], fta=player['fta'], orb=player['orb'], drb=player['drb'], ast=player['ast'], pf=player['pf'], st=player['stl'], tov=player['tov'], bs=player['blk'], pts=player['pts'])
                     gameplayerstat_object.save()
-        '''
 
     IS_CRAWLING = False
     return render(request, 'basketball/players.html')

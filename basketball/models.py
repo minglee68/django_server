@@ -124,6 +124,7 @@ class Team(models.Model):
     homestadium = models.CharField(db_column='HomeStadium', max_length=128, blank=True, null=True)  # Field name made lowercase.
     cityid = models.ForeignKey(City, models.DO_NOTHING, db_column='CityId', blank=True, null=True)  # Field name made lowercase.
     leagueid = models.ForeignKey(League, models.DO_NOTHING, db_column='LeagueId', blank=True, null=True)  # Field name made lowercase.
+    imageurl = models.CharField(db_column='ImageURL', max_length=2083)
 
     class Meta:
         db_table = 'team'
@@ -165,6 +166,7 @@ class Team_stat(models.Model):
 
     year = models.CharField(db_column='Year', max_length=5)
     team_name = models.CharField(db_column='Team_Name', max_length=128)
+    league_name = models.CharField(db_column='League_Name', max_length=128)
     fg = models.DecimalField(db_column='FG', decimal_places=0, max_digits=54)
     fga = models.DecimalField(db_column='FGA', decimal_places=0, max_digits=54)
     fgp = models.DecimalField(db_column='FGP', decimal_places=4, max_digits=61)

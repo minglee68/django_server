@@ -85,6 +85,7 @@ class Migration(migrations.Migration):
                 ('homestadium', models.CharField(blank=True, db_column='HomeStadium', max_length=128, null=True)),
                 ('cityid', models.ForeignKey(blank=True, db_column='CityId', null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='basketball.City')),
                 ('leagueid', models.ForeignKey(blank=True, db_column='LeagueId', null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='basketball.League')),
+                ('imageurl', models.CharField(db_column='ImageURL', max_length=2083)),
             ],
             options={
                 'db_table': 'team',
@@ -209,6 +210,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('year', models.CharField(db_column='Year', max_length=5)),
                 ('team_name', models.CharField(db_column='Team_Name', max_length=128)),
+                ('league_name', models.CharField(db_column='League_Name', max_length=128)),
                 ('fg', models.DecimalField(db_column='FG', decimal_places=0, max_digits=54)),
                 ('fga', models.DecimalField(db_column='FGA', decimal_places=0, max_digits=54)),
                 ('fgp', models.DecimalField(db_column='FGP', decimal_places=4, max_digits=61)),

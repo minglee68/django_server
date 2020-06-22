@@ -4,28 +4,9 @@ CREATE OR REPLACE VIEW Player_Stat AS
     WHERE Player.PlayerId = GamePlayerStat.PlayerId AND GamePlayerStat.GameId = Game.GameId AND Game.SeasonId = Season.SeasonId AND Player.PlayerId = PlayerTeam.PlayerId AND Game.SeasonId = PlayerTeam.SeasonId AND PlayerTeam.TeamId = Team.TeamId
     GROUP BY Year, Type, Player.Name, Team.Name,  Height, Weight, Age;
 
-CREATE VIEW Team_Stat AS
-    SELECT Player_Stat.Year, League.Name AS League_Name, Team.Name AS Team_Name, AVG(FG) AS FG, AVG(FGA) AS FGA, AVG(FG) / AVG(FGA) * 100 AS 'FG%', AVG(3P) AS 3P, AVG(3PA) AS 3PA, AVG(3P) / AVG(3PA) * 100 AS '3P%', AVG(FT) AS FT, AVG(FTA) AS FTA, AVG(FT) / AVG(FTA) * 100 AS 'FT%', AVG(ORB) AS ORB, AVG(DRB) AS DRB, AVG(AST) AS AST, AVG(PF) AS PF, AVG(ST) AS ST, AVG(TOV) AS TOV, AVG(BS) AS BS, AVG(PTS) AS PTS
-    FROM Team, Player_Stat, League
-    WHERE Team.Name = Team_Name AND Team.LeagueId = League.LeagueId
-    GROUP BY Player_Stat.Year, League.Name, Team.Name;
-
-CREATE VIEW Game_Result AS
-    SELECT Year, Type, Date, Home, Home_Score, Away, Away_Score, Quarters
-    FROM (SELECT Date, Game.GameId AS GameId, SeasonId, Game.HomeId AS HomeId, Team.Name AS Home, SUM(Score) AS Home_Score, COUNT(QuarterNumber) AS Quarters
-          FROM Game, Quarter, Team
-          WHERE Game.GameId = Quarter.GameId AND Game.HomeId = Team.TeamId AND Quarter.TeamId = Team.TeamId
-          GROUP BY Date, GameId, SeasonId, Game.HomeId, Team.Name) AS Home_Result,
-         (SELECT Game.GameId AS GameId, Game.AwayId AS AwayId, Team.Name AS Away, SUM(Score) AS Away_Score
-          FROM Game, Quarter, Team
-          WHERE Game.GameId = Quarter.GameId AND Game.AwayId = Team.TeamId AND Quarter.TeamId = Team.TeamId
-          GROUP BY GameId, Game.AwayId, Team.Name) AS Away_Result,
-          Season, League
-    WHERE Home_Result.GameId = Away_Result.GameId AND Home_Result.SeasonId = Season.SeasonId;
-
 
 CREATE OR REPLACE VIEW Team_Stat AS 
-SELECT row_number() over () as id, Team_Stat.Year AS Year, Team_Stat.Team_Name AS Team_Name, Score, FG, FGA, FGP, 3P, 3PA, 3PP, FT, FTA, FTP, ORB, DRB, AST, PF, ST, TOV, BS
+SELECT row_number() over () as id, Team_Stat.Year AS Year, Team_Stat.Team_Name AS Team_Name, Team_Stat.League_Name AS League_Name, Score, FG, FGA, FGP, 3P, 3PA, 3PP, FT, FTA, FTP, ORB, DRB, AST, PF, ST, TOV, BS
 FROM (SELECT Player_Stat.Year AS Year, League.Name AS League_Name, Team.Name AS Team_Name, SUM(FG) AS FG, SUM(FGA) AS FGA, SUM(FG) / SUM(FGA) * 100 AS FGP, SUM(3P) AS 3P, SUM(3PA) AS 3PA, SUM(3P) / SUM(3PA) * 100 AS 3PP, SUM(FT) AS FT, SUM(FTA) AS FTA, SUM(FT) / SUM(FTA) * 100 AS FTP, SUM(ORB) AS ORB, SUM(DRB) AS DRB, SUM(AST) AS AST, SUM(PF) AS PF, SUM(ST) AS ST, SUM(TOV) AS TOV, SUM(BS) AS BS
       FROM Team, Player_Stat, League
       WHERE Team.Name = Team_Name AND Team.LeagueId = League.LeagueId
@@ -42,4 +23,48 @@ FROM (SELECT Player_Stat.Year AS Year, League.Name AS League_Name, Team.Name AS 
       WHERE A.Year = B.Year AND A.Team_Name = B.Team_Name AND A.Game_ID = B.Game_ID AND  A.Total_Score = B.Total_Score
       GROUP BY A.Year, A.Team_Name) AS Team_Result
 WHERE Team_Stat.Year = Team_Result.Year AND Team_Stat.Team_Name = Team_Result.Team_Name
-GROUP BY Team_Stat.Year, Team_Stat.Team_Name;
+GROUP BY Team_Stat.Year, Team_Stat.Team_Name, Team_Stat.League_Name;
+
+
+CREATE OR REPLACE VIEW League_Stat AS
+SELECT row_number() over () as id, A.Year AS Year, A.League_Name AS League_Name, AVG(A.Score) AS Score, AVG(A.FG) AS FG, AVG(A.FGA) AS FGA, AVG(A.FGP) AS FGP, AVG(A.3P) AS 3P, AVG(A.3PA) AS 3PA, AVG(A.3PP) AS 3PP, AVG(A.FT) AS FT, AVG(A.FTA) AS FTA, AVG(A.FTP) AS FTP, AVG(A.ORB) AS ORB, AVG(A.DRB) AS DRB, AVG(A.AST) AS AST, AVG(A.PF) AS PF, AVG(A.ST) AS ST, AVG(A.TOV) AS TOV, AVG(A.BS) AS BS
+FROM Team_Stat AS A, Team_Stat AS B
+WHERE A.Year = B.Year AND A.Team_Name = B.Team_Name AND A.League_Name = B.League_Name
+GROUP BY A.Year, A.League_Name;
+
+
+
+
+
+CREATE OR REPLACE VIEW Player_Position_Stat AS
+    SELECT row_number() over () as id, Year, Season.Type AS Season_Type, Player.Name AS Player_Name, Player.ImageURL AS Player_ImageURL, Team.Name AS Team_Name, Position.Type AS Position_Type, Height, Weight, Age, SUM(MP) AS MP, SUM(FG) AS FG, SUM(FGA) AS FGA, SUM(FG) / SUM(FGA) * 100 AS FGP, SUM(3P) AS 3P, SUM(3PA) AS 3PA, SUM(3P) / SUM(3PA) * 100 AS 3PP, SUM(FT) AS FT, SUM(FTA) AS FTA, SUM(FT) / SUM(FTA) * 100 AS FTP, SUM(ORB) AS ORB, SUM(DRB) AS DRB, SUM(AST) AS AST, SUM(PF) AS PF, SUM(ST) AS ST, SUM(TOV) AS TOV, SUM(BS) AS BS, SUM(PTS) AS PTS
+    FROM Player, GamePlayerStat, Game, Season, PlayerTeam, Team, PlayerPosition, Position
+    WHERE Player.PlayerId = GamePlayerStat.PlayerId AND GamePlayerStat.GameId = Game.GameId AND Game.SeasonId = Season.SeasonId AND Player.PlayerId = PlayerTeam.PlayerId AND Game.SeasonId = PlayerTeam.SeasonId AND PlayerTeam.TeamId = Team.TeamId AND Player.PlayerId = PlayerPosition.PlayerId AND PlayerPosition.PositionId = Position.PositionId
+    GROUP BY Year, Season.Type, Player.Name, Team.Name, Position.Type, Height, Weight, Age;
+
+
+CREATE OR REPLACE VIEW Team_Position_Stat AS 
+SELECT row_number() over () as id, Team_Stat.Year AS Year, Team_Stat.Team_Name AS Team_Name, Team_Stat.League_Name AS League_Name, Team_Stat.Position_Type AS Position_Type, Score, FG, FGA, FGP, 3P, 3PA, 3PP, FT, FTA, FTP, ORB, DRB, AST, PF, ST, TOV, BS
+FROM (SELECT Player_Position_Stat.Year AS Year, League.Name AS League_Name, Team.Name AS Team_Name, Position_Type, SUM(FG) AS FG, SUM(FGA) AS FGA, SUM(FG) / SUM(FGA) * 100 AS FGP, SUM(3P) AS 3P, SUM(3PA) AS 3PA, SUM(3P) / SUM(3PA) * 100 AS 3PP, SUM(FT) AS FT, SUM(FTA) AS FTA, SUM(FT) / SUM(FTA) * 100 AS FTP, SUM(ORB) AS ORB, SUM(DRB) AS DRB, SUM(AST) AS AST, SUM(PF) AS PF, SUM(ST) AS ST, SUM(TOV) AS TOV, SUM(BS) AS BS
+      FROM Team, Player_Position_Stat, League
+      WHERE Team.Name = Team_Name AND Team.LeagueId = League.LeagueId
+      GROUP BY Player_Position_Stat.Year, League.Name, Team.Name, Position_Type) AS Team_Stat,
+     (SELECT A.Year AS Year, A.Team_Name AS  Team_Name, SUM(A.Total_Score) AS Score
+      FROM (SELECT Year, Team.Name AS Team_Name, Game.GameId AS Game_ID, SUM(Quarter.Score) AS Total_Score
+            FROM Team, Quarter, Game, Season
+            WHERE Team.TeamId = Quarter.TeamId AND Quarter.GameId = Game.GameId AND Game.SeasonId = Season.SeasonId
+            GROUP BY Year, Team.Name, Game.GameId) AS A,
+            (SELECT Year, Team.Name AS Team_Name, Game.GameId AS Game_ID, SUM(Quarter.Score) AS Total_Score
+            FROM Team, Quarter, Game, Season
+            WHERE Team.TeamId = Quarter.TeamId AND Quarter.GameId = Game.GameId AND Game.SeasonId = Season.SeasonId
+            GROUP BY Year, Team.Name, Game.GameId) AS B
+      WHERE A.Year = B.Year AND A.Team_Name = B.Team_Name AND A.Game_ID = B.Game_ID AND  A.Total_Score = B.Total_Score
+      GROUP BY A.Year, A.Team_Name) AS Team_Result
+WHERE Team_Stat.Year = Team_Result.Year AND Team_Stat.Team_Name = Team_Result.Team_Name
+GROUP BY Team_Stat.Year, Team_Stat.Team_Name, Team_Stat.League_Name, Team_Stat.Position_Type;
+
+CREATE OR REPLACE VIEW League_Position_Stat AS
+SELECT row_number() over () as id, A.Year AS Year, A.League_Name AS League_Name, A.Position_Type AS Position_Type, AVG(A.Score) AS Score, AVG(A.FG) AS FG, AVG(A.FGA) AS FGA, AVG(A.FGP) AS FGP, AVG(A.3P) AS 3P, AVG(A.3PA) AS 3PA, AVG(A.3PP) AS 3PP, AVG(A.FT) AS FT, AVG(A.FTA) AS FTA, AVG(A.FTP) AS FTP, AVG(A.ORB) AS ORB, AVG(A.DRB) AS DRB, AVG(A.AST) AS AST, AVG(A.PF) AS PF, AVG(A.ST) AS ST, AVG(A.TOV) AS TOV, AVG(A.BS) AS BS
+FROM Team_Position_Stat AS A, Team_Position_Stat AS B
+WHERE A.Year = B.Year AND A.Team_Name = B.Team_Name AND A.League_Name = B.League_Name AND A.Position_Type = B.Position_Type
+GROUP BY A.Year, A.League_Name, A.Position_Type;

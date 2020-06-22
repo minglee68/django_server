@@ -79,7 +79,7 @@
 		</div>
 		<div id="NBA_detail">
 			<div class="detail_top">
-				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
+				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="NBA_img">
 				<div class="detail_name" id="NBA_Player_info">
 					<span class="name">Player 1</span>
 					<span class="age">Age: 20 years old</span>
@@ -136,6 +136,7 @@
 				} // window.onload
 
 				function getNBAPlayer(nbalist) {
+					$("#player_chart").animate({'opacity': 0.3}, 500);
 					var name1 = nbalist.innerText;
 					$.ajax({
 						url: '{% url "basketball:get_player_information" %}',
@@ -148,6 +149,7 @@
 							$("#NBA_Player_info").empty();
 							var html = '';
 							//data = JSON.parse(data);
+							$("#NBA_img").attr("src", data.imageurl);
 							html += '<span class="name">' + data.name + '</span>';
 							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
 							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
@@ -176,6 +178,7 @@
 							}
 							chrtdata.datasets[0] = newDataset;
 							window.myChart.update();
+							$("#player_chart").animate({'opacity': 1}, 500);
 						},
 						errors: function(e) {
 							alert(e);
@@ -184,6 +187,7 @@
 				} //fucntion getPlayer
 
 				function getKBLPlayer(kbllist) {
+					$("#player_chart").animate({'opacity': 0.3}, 500);
 					var name2 = kbllist.innerText;
 					$.ajax({
 						url: '{% url "basketball:get_player_information" %}',
@@ -196,6 +200,7 @@
 							$("#KBL_Player_info").empty();
 							var html = '';
 							//data = JSON.parse(data);
+							$("#KBL_img").attr("src", data.imageurl);
 							html += '<span class="name">' + data.name + '</span>';
 							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
 							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
@@ -224,6 +229,7 @@
 							}
 							chrtdata.datasets[1] = newDataset;
 							window.myChart.update();
+							$("#player_chart").animate({'opacity': 1}, 500);
 						},
 						errors: function(e) {
 							alert(e);
@@ -234,10 +240,11 @@
 		</div>
 		<div>
 			<canvas id="player_chart" width="500" height="800"></canvas>
+
 		</div>
 		<div id="KBL_detail">
 			<div class="detail_top">
-				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
+				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="KBL_img">
 				<div class="detail_name" id="KBL_Player_info">
 					<span class="name">Player 2</span>
 					<span class="age">Age: 20 years old</span>

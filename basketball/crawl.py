@@ -278,7 +278,11 @@ def crawl_KBL_quarter_gamePlayerStat():
     game_data_list = []
     for year in year_list:
         for month in month_list:
-            url = ORIG_URL + "/schedule/today/calendar.asp?CalDate=" + str(year) + "-" + str(month)
+            if month > 9:
+                url = ORIG_URL + "/schedule/today/calendar.asp?CalDate=" + str(year) + "-" + str(month)
+            else:
+                url = ORIG_URL + "/schedule/today/calendar.asp?CalDate=" + str(year) + "-0" + str(month)
+
             driver.get(url)
             html = driver.page_source
             soup = BeautifulSoup(html, 'html.parser')
@@ -357,7 +361,6 @@ def crawl_KBL_quarter_gamePlayerStat():
                         player['pts'] = td_list[23].get_text()
 
                         players.append(player)
-                        print(player)
 
                     if is_home:
                         game['home']['players'] = players
@@ -447,7 +450,6 @@ def crawl_KBL_gamePlayerStat():
                         player['pts'] = td_list[23].get_text()
 
                         players.append(player)
-                        print(player)
 
                     if is_home:
                         game['home']['players'] = players
