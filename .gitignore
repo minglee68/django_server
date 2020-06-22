@@ -55,3 +55,6 @@ nba_data.txt
 kbl_data.txt
 kbl_player_data.txt
 read_json.py
+
+# Virtual env
+myvenv/**
