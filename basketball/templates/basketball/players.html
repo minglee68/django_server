@@ -6,7 +6,6 @@
 <head>
 	<meta charset="utf-8">
 	<title>나 농구하는 남자야~</title>
-	<link rel="stylesheet" type="text/css" href="{% static 'basketball/style.css' %}">
 
 	<!-- Chart.js -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
@@ -19,6 +18,8 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
+	<link rel="stylesheet" type="text/css" href="{% static 'basketball/style.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'basketball/player.css' %}">
 </head>
 
 <body>
@@ -80,19 +81,12 @@
 		<div id="NBA_detail">
 			<div class="detail_top">
 				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="NBA_img">
-				<div class="detail_name" id="NBA_Player_info">
-					<span class="name">Player 1</span>
-					<span class="age">Age: 20 years old</span>
-					<br>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
+				<div class="detail_name" id="NBA_player_info">
+					<span class="name" id="NBA_player_name">Player name</span>
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<span>Graphs</span>
+
 			</div>
 			<script>
 				var chrtdata = {
@@ -135,8 +129,26 @@
 					}); // chart
 				} // window.onload
 
+				var loading_nested = 0;
+
+				function loading_on() {
+					loading_nested++;
+					if (loading_nested == 1) {
+						$("#player_chart").animate({'opacity': 0.3}, 500);
+						$("#loading").fadeIn(500);
+					}
+				}
+
+				function loading_off() {
+					loading_nested--;
+					if (loading_nested == 0) {
+						$("#player_chart").animate({'opacity': 1.0}, 500);
+						$("#loading").fadeOut(500);
+					}
+				}
+
 				function getNBAPlayer(nbalist) {
-					$("#player_chart").animate({'opacity': 0.3}, 500);
+					loading_on();
 					var name1 = nbalist.innerText;
 					$.ajax({
 						url: '{% url "basketball:get_player_information" %}',
@@ -146,17 +158,16 @@
 						contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 						dataType: 'json',
 						success: function(data) {
-							$("#NBA_Player_info").empty();
+							$("#NBA_player_name").text(data.name);
 							var html = '';
 							//data = JSON.parse(data);
 							$("#NBA_img").attr("src", data.imageurl);
-							html += '<span class="name">' + data.name + '</span>';
 							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
 							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
 							html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
 							html += '<span class="other"> Position : ' + data.position + '</span>';
 							html += '<span class="other"> Team : ' + data.team + '</span>';
-							$("#NBA_Player_info").append(html);
+							$("#NBA_detail > .detail_bottom").append(html);
 						},
 						errors: function(e) {
 							alert(e);
@@ -178,7 +189,7 @@
 							}
 							chrtdata.datasets[0] = newDataset;
 							window.myChart.update();
-							$("#player_chart").animate({'opacity': 1}, 500);
+							loading_off();
 						},
 						errors: function(e) {
 							alert(e);
@@ -187,7 +198,7 @@
 				} //fucntion getPlayer
 
 				function getKBLPlayer(kbllist) {
-					$("#player_chart").animate({'opacity': 0.3}, 500);
+					loading_on();
 					var name2 = kbllist.innerText;
 					$.ajax({
 						url: '{% url "basketball:get_player_information" %}',
@@ -197,17 +208,16 @@
 						contentType: "application/x-www-form-urlencoded; charset=UTF-8",
 						dataType: 'json',
 						success: function(data) {
-							$("#KBL_Player_info").empty();
+							$("#KBL_player_name").text(data.name);
 							var html = '';
 							//data = JSON.parse(data);
 							$("#KBL_img").attr("src", data.imageurl);
-							html += '<span class="name">' + data.name + '</span>';
 							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
 							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
 							html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
 							html += '<span class="other"> Position : ' + data.position + '</span>';
 							html += '<span class="other"> Team : ' + data.team + '</span>';
-							$("#KBL_Player_info").append(html);
+							$("#KBL_detail > .detail_bottom").append(html);
 						},
 						errors: function(e) {
 							alert(e);
@@ -229,7 +239,7 @@
 							}
 							chrtdata.datasets[1] = newDataset;
 							window.myChart.update();
-							$("#player_chart").animate({'opacity': 1}, 500);
+							loading_off();
 						},
 						errors: function(e) {
 							alert(e);
@@ -240,24 +250,16 @@
 		</div>
 		<div>
 			<canvas id="player_chart" width="500" height="800"></canvas>
-
 		</div>
 		<div id="KBL_detail">
 			<div class="detail_top">
 				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="KBL_img">
 				<div class="detail_name" id="KBL_Player_info">
-					<span class="name">Player 2</span>
-					<span class="age">Age: 20 years old</span>
-					<br>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
+					<span class="name" id="KBL_player_name">Player 2</span>
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<span>Graphs</span>
+
 			</div>
 		</div>
 		<div id="KBL">
@@ -306,6 +308,7 @@
 			</div>
 		</div>
 	</div>
+	<div id="loading" style="display: none; position: absolute; left: 50%; top: 50%;">loading</div>
 	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 </body>
 
