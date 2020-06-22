@@ -211,7 +211,7 @@ def get_team_player_list(request):
     team_name = request.GET.get('team_name', None)
     team_obj = Team.objects.get(name=team_name)
     player_team_list = Playerteam.objects.filter(Q(teamid=team_obj)&(Q(seasonid=42)|Q(seasonid=47)))
-    team_player_list = []
+    team_player_list = [team_obj.imageurl,]
     for list in player_team_list:
         pname = Player.objects.get(playerid=list.playerid.playerid).name
         team_player_list.append(pname)

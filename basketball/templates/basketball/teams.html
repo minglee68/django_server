@@ -141,8 +141,9 @@
 							var html = '';
 							data = JSON.parse(data);
 							$("#NBA_Team_name").text(name1);
+							$("#NBA_img").attr("src", data[0]);
 							//html += '<div class="NBA_list" onclick="getNBATeam(this)"><span class="name">' + name1 + '</span></div>'
-							for (var i = 0; i < data.length; i++) {
+							for (var i = 1; i < data.length; i++) {
 								html += '<div class="NBA_list" onclick="getNBAPlayer(this)"><span class="other">' + data[i] + '</span></div>';
 							}
 							$("#NBA_Team_info").append(html);
@@ -217,8 +218,9 @@
 							var html = '';
 							data = JSON.parse(data);
 							$("#KBL_Team_name").text(name2);
+							$("#KBL_img").attr("src", data[0]);
 							//html += '<div class="KBL_list" onclick="getKBLTeam(this)"><span class="name">' + name2 + '</span></div>'
-							for (var i = 0; i < data.length; i++) {
+							for (var i = 1; i < data.length; i++) {
 								html += '<div class="KBL_list" onclick="getKBLPlayer(this)"><span class="other">' + data[i] + '</span></div>';
 							}
 							$("#KBL_Team_info").append(html);
