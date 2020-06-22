@@ -8,7 +8,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 
 from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_NBA_quarter_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat, crawl_KBL_quarter_gamePlayerStat
-from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team, Player_stat, Quarter, Team_stat, League, League_stat
+from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team, Player_stat, Quarter, Team_stat, League, League_stat, League_position_stat
 
 
 IS_CRAWLING = False		# Read-only!!
@@ -206,15 +206,20 @@ def get_team_stats(request):
     return JsonResponse(context)
 
 def get_league_stats(request):
-    labels = ['Score', 'FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS']
+    labels = ['FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS']
     stats = [0,]
     league_name = request.GET.get('league_name', None)
     league_object = League.objects.get(name=league_name)
     try:
         leaguestats = League_stat.objects.filter(league_name=league_name)
         if 'NBA' in league_object.name:
+            if 'Eastern' in league_object.name:
+                img = 'https://content.sportslogos.net/logos/6/999/thumbs/2995.gif'
+            else:
+                img = 'https://content.sportslogos.net/logos/6/1001/thumbs/2996.gif'
             games = 96
         else:
+            img = 'https://www.kbl.or.kr/images/common/img_header_logo.gif'
             games = 62
         stats = [0 for _ in range(16)]
         for leaguestat in leaguestats:
@@ -238,6 +243,52 @@ def get_league_stats(request):
             stats[i] = stats[i] / len(leaguestats)
     except League_stat.DoesNotExist:
         print('league_stat_no data');
+
+    context = {'img':img, 'chart_labels':labels, 'chart_data':stats}
+
+    return JsonResponse(context)
+
+def get_league_position_stats(request):
+    labels = ['FG', 'FGA', 'FGP', '3P', '3PA', '3PP', 'FT', 'FTA', 'FTP', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS']
+    stats = [0,]
+    league_name = request.GET.get('league_name', None)
+    position_name = request.GET.get('position_name', None)
+    print(league_name, position_name)
+    try:
+        if position_name == 'Center' or league_name == 'KBL':
+            leaguestats = League_position_stat.objects.filter(league_name=league_name, position_type=position_name)
+        elif position_name == 'Forward':
+            leaguestats = League_position_stat.objects.filter(Q(league_name=league_name)&(Q(position_type='Power Forward')|Q(position_type='Small Forward')))
+        else:
+            leaguestats = League_position_stat.objects.filter(Q(league_name=league_name)&(Q(position_type='Point Guard')|Q(position_type='Shooting Guard')))
+
+        if 'NBA' in league_name:
+            games = 96
+        else:
+            games = 62
+        stats = [0 for _ in range(16)]
+        for leaguestat in leaguestats:
+            stats[0] += int(leaguestat.fg / games)
+            stats[1] += int(leaguestat.fga / games)
+            stats[2] += int(leaguestat.fgp)
+            stats[3] += int(leaguestat.number_3p / games)
+            stats[4] += int(leaguestat.number_3pa / games)
+            stats[5] += int(leaguestat.number_3pp)
+            stats[6] += int(leaguestat.ft / games)
+            stats[7] += int(leaguestat.fta / games)
+            stats[8] += int(leaguestat.ftp)
+            stats[9] += int(leaguestat.orb / games)
+            stats[10] += int(leaguestat.drb / games)
+            stats[11] += int(leaguestat.ast / games)
+            stats[12] += int(leaguestat.pf / games)
+            stats[13] += int(leaguestat.st / games)
+            stats[14] += int(leaguestat.tov / games)
+            stats[15] += int(leaguestat.bs / games)
+        # for i in range(16):
+            # stats[i] = stats[i] / len(leaguestats)
+        print(leaguestats)
+    except League_position_stat.DoesNotExist:
+        print('league_position_stat_no data');
 
     context = {'chart_labels':labels, 'chart_data':stats}
 

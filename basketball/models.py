@@ -214,6 +214,33 @@ class League_stat(models.Model):
         managed = False
         db_table = 'league_stat'
 
+class League_position_stat(models.Model):
+
+    year = models.CharField(db_column='Year', max_length=5)
+    league_name = models.CharField(db_column='League_Name', max_length=128)
+    position_type = models.CharField(db_column='Position_Type', max_length=128)
+    score = models.DecimalField(db_column='Score', decimal_places=4, max_digits=58)
+    fg = models.DecimalField(db_column='FG', decimal_places=4, max_digits=58)
+    fga = models.DecimalField(db_column='FGA', decimal_places=4, max_digits=58)
+    fgp = models.DecimalField(db_column='FGP', decimal_places=8, max_digits=65)
+    number_3p = models.DecimalField(db_column='3P', decimal_places=4, max_digits=58)
+    number_3pa = models.DecimalField(db_column='3PA', decimal_places=4, max_digits=58)
+    number_3pp = models.DecimalField(db_column='3PP', decimal_places=8, max_digits=65)
+    ft = models.DecimalField(db_column='FT', decimal_places=4, max_digits=58)
+    fta = models.DecimalField(db_column='FTA', decimal_places=4, max_digits=58)
+    ftp = models.DecimalField(db_column='FTP', decimal_places=8, max_digits=65)
+    orb = models.DecimalField(db_column='ORB', decimal_places=4, max_digits=58)
+    drb = models.DecimalField(db_column='DRB', decimal_places=4, max_digits=58)
+    ast = models.DecimalField(db_column='AST', decimal_places=4, max_digits=58)
+    pf = models.DecimalField(db_column='PF', decimal_places=4, max_digits=58)
+    st = models.DecimalField(db_column='ST', decimal_places=4, max_digits=58)
+    tov = models.DecimalField(db_column='TOV', decimal_places=4, max_digits=58)
+    bs = models.DecimalField(db_column='BS', decimal_places=4, max_digits=58)
+
+    class Meta:
+        managed = False
+        db_table = 'league_position_stat'
+
 '''
 class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=150)

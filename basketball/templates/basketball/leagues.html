@@ -61,11 +61,10 @@
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<button type="button" name="toggle_nba_players" class="btn btn-default" id="NBA_toggle">Toggle Team Players</button>
 				<ul class="toggleable" id="NBA_player_list">
-					<li>Player 1</li>
-					<li>Player 2</li>
-					<li>Player 3</li>
+					<li id="NBA_league" value="NBA" >Forward</li>
+					<li id="NBA_league" value="NBA" >Guard</li>
+					<li id="NBA_league" value="NBA" >Center</li>
 				</ul>
 			</div>
 		</div>
@@ -80,11 +79,10 @@
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<button type="button" name="toggle_nba_players" class="btn btn-default" id="KBL_toggle">Toggle Team Players</button>
 				<ul class="toggleable" id="KBL_player_list">
-					<li>Player 1</li>
-					<li>Player 2</li>
-					<li>Player 3</li>
+					<li id="KBL_league" value="KBL" >Forward</li>
+					<li id="KBL_league" value="KBL" >Guard</li>
+					<li id="KBL_league" value="KBL" >Center</li>
 				</ul>
 			</div>
 		</div>
@@ -148,6 +146,7 @@
 				},
 				dataType: 'json',
 				success: function(data) {
+					$("#NBA_img").attr("src", data.img);
 					var newDataset = {
 						label: name1,
 						data: data.chart_data,
@@ -165,16 +164,18 @@
 			}); // ajax
 		} //fucntion getPlayer
 
-		function getNBAPlayer(player) {
+		function getNBAPosition(player) {
 			$(player).siblings().removeClass('selected');
 			$(player).addClass('selected');
 
 			loading_on();
 			var name1 = player.innerText;
+			var league1 = $("#NBA_league").val();
 			$.ajax({
-				url: '{% url "basketball:get_player_stats" %}',
+				url: '{% url "basketball:get_league_position_stats" %}',
 				data: {
-					'player_name': name1
+					'player_name': name1,
+					'league_name': league1
 				},
 				dataType: 'json',
 				success: function(data) {
@@ -205,6 +206,7 @@
 				},
 				dataType: 'json',
 				success: function(data) {
+					$("#KBL_img").attr("src", data.img);
 					var newDataset = {
 						label: name2,
 						data: data.chart_data,
@@ -222,16 +224,18 @@
 			}); // ajax
 		} //fucntion getPlayer
 
-		function getKBLPlayer(kbllist) {
+		function getKBLPosition(kbllist) {
 			$(kbllist).siblings().removeClass('selected');
 			$(kbllist).addClass('selected');
 			
 			loading_on();
 			var name2 = kbllist.innerText;
+			var league2 = $("KBL_league").val();
 			$.ajax({
-				url: '{% url "basketball:get_player_stats" %}',
+				url: '{% url "basketball:get_league_position_stats" %}',
 				data: {
-					'player_name': name2
+					'position_name': name2,
+					'league_name': league2
 				},
 				dataType: 'json',
 				success: function(data) {
