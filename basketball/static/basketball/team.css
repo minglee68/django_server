@@ -1,0 +1,41 @@
+#NBA_detail, #KBL_detail {
+	display: flex;
+	flex-direction: column;
+}
+
+.detail_top {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+	.detail_top .name {
+		font-size: 2em;
+		text-align: center;
+		cursor: pointer;
+	}
+
+.detail_bottom {
+	display: flex;
+	flex-direction: column;
+}
+
+	.detail_bottom .toggleable {
+		padding: 10px 0;
+		margin-top: 10px;
+	}
+
+		.toggleable li {
+			list-style: none;
+			padding: 10px;
+			transition: background-color 0.3s ease;
+			cursor: pointer;
+		}
+
+		.toggleable li:hover {
+			background-color: #EFEFEF;
+		}
+
+		.toggleable li.selected {
+			background-color: #EFEFEF;
+		}

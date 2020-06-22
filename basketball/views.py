@@ -237,7 +237,7 @@ def crawl_nba_player(request):
             except Position.DoesNotExist:
                 position_object = Position(type=position)
                 position_object.save()
-                
+
             try:
                 player_position_object = Playerposition.objects.get(playerid=player_object, positionid=position_object)
             except Playerposition.DoesNotExist:
@@ -273,7 +273,7 @@ def crawl_nba_game_player_stat(request):
             season_object = Season.objects.get(year=season, type='NBA')
         except Season.DoesNotExist:
             continue
-        
+
         date = datetime.date(int(game['date'][:4]), month, day)
         home_name = game['home']['team']
         away_name = game['away']['team']
@@ -349,7 +349,7 @@ def crawl_kbl_player(request):
             except Position.DoesNotExist:
                 position_object = Position(type=position)
                 position_object.save()
-                
+
             try:
                 player_position_object = Playerposition.objects.get(playerid=player_object, positionid=position_object)
             except Playerposition.DoesNotExist:
@@ -388,7 +388,7 @@ def crawl_kbl_game_player_stat(request):
             continue
             season_object = Season(year=season, type='KBL')
             season_object.save()
-        
+
         date = datetime.date(int(game['date'][:4]), month, day)
         home_name = game['home']['team']
         away_name = game['away']['team']
