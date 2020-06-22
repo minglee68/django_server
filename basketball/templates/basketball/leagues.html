@@ -6,7 +6,6 @@
 <head>
 	<meta charset="utf-8">
 	<title>나 농구하는 남자야~</title>
-	<link rel="stylesheet" type="text/css" href="{% static 'basketball/style.css' %}">
 
 	<!-- Chart.js -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
@@ -19,6 +18,9 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
+	<link rel="stylesheet" type="text/css" href="{% static 'basketball/style.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'basketball/team.css' %}">
+	<script type="text/javascript" src="{% static 'basketball/team.js' %}"></script>
 </head>
 
 <body>
@@ -47,210 +49,43 @@
 					</div>
 				</div>
 			</form>
-			<div class="player_list" id="NBA_player_list">
-				<script>
-					function NBA_changed() {
-						var player_name = $("#NBA_search").val();
-
-						$.ajax({
-							url: '{% url "basketball:get_player_list" %}',
-							data: {
-								'player_name': player_name
-							},
-							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-							dataType: 'json',
-							success: function(data) {
-								$("#NBA_player_list").empty();
-								var html = '';
-								data = JSON.parse(data);
-								for (var i = 0; i < data.length; i++) {
-									html += '<div class="NBA_list" onclick="getNBAPlayer(this)"><span>' + data[i].name + '</span></div>';
-								}
-								$("#NBA_player_list").append(html);
-							},
-							errors: function(e) {
-								alert(e);
-							}
-						});
-					}
-				</script>
+			<div class="player_list" id="NBA_team_list">
 				<!-- TODO: Overflow-y scroll -->
 			</div>
 		</div>
 		<div id="NBA_detail">
 			<div class="detail_top">
-				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
-				<div class="detail_name" id="NBA_Player_info">
-					<span class="name">Player 1</span>
-					<span class="age">Age: 20 years old</span>
-					<br>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
+				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="NBA_img">
+				<div class="detail_name" id="NBA_Team_info">
+					<span class="name" id="NBA_Team_name" onclick="getNBALeague(this)">Team name</span>
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<span>Graphs</span>
+				<button type="button" name="toggle_nba_players" class="btn btn-default" id="NBA_toggle">Toggle Team Players</button>
+				<ul class="toggleable" id="NBA_player_list">
+					<li>Player 1</li>
+					<li>Player 2</li>
+					<li>Player 3</li>
+				</ul>
 			</div>
-			<script>
-				var chrtdata = {
-					labels: ['MP', 'FG', 'FGA', '3P', '3PA', 'FT', 'FTA', 'ORB', 'DRB', 'AST', 'PF', 'ST', 'TOV', 'BS', 'PTS'],
-					datasets: [{
-						label: 'NBA empty',
-						data: [0, ],
-						backgroundColor: 'rgba(255, 92, 132, 0.2)',
-						borderColor: 'rgba(255, 92, 132, 1)',
-						borderWidth: 1,
-					}, {
-						label: 'KBL empty',
-						data: [0, ],
-						backgroundColor: 'rgba(54, 162, 235, 0.2)',
-						borderColor: 'rgba(54, 162, 235, 1)',
-						borderWidth: 1,
-					}]
-				}; // chrt data
-
-				window.onload = function() {
-					var ctx = document.getElementById('player_chart').getContext('2d');
-					window.myChart = new Chart(ctx, {
-						type: 'horizontalBar',
-						data: chrtdata,
-						options: {
-							elements: {
-								rectangle: {
-									borderWidth: 1,
-								}
-							},
-							responsive: false,
-							legend: {
-								position: 'top',
-							},
-							title: {
-								display: true,
-								text: 'Stat'
-							}
-						}
-					}); // chart
-				} // window.onload
-
-				function getNBAPlayer(nbalist) {
-					var name1 = nbalist.innerText;
-					$.ajax({
-						url: '{% url "basketball:get_player_information" %}',
-						data: {
-							'player_name': name1
-						},
-						contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-						dataType: 'json',
-						success: function(data) {
-							$("#NBA_Player_info").empty();
-							var html = '';
-							//data = JSON.parse(data);
-							html += '<span class="name">' + data.name + '</span>';
-							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
-							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
-							html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
-							html += '<span class="other"> Position : ' + data.position + '</span>';
-							html += '<span class="other"> Team : ' + data.team + '</span>';
-							$("#NBA_Player_info").append(html);
-						},
-						errors: function(e) {
-							alert(e);
-						}
-					}); //ajax
-					$.ajax({
-						url: '{% url "basketball:get_player_stats" %}',
-						data: {
-							'player_name': name1
-						},
-						dataType: 'json',
-						success: function(data) {
-							var newDataset = {
-								label: name1,
-								data: data.chart_data,
-								backgroundColor: 'rgba(255, 92, 132, 0.2)',
-								borderColor: 'rgba(255, 92, 132, 1)',
-								borderWidth: 1,
-							}
-							chrtdata.datasets[0] = newDataset;
-							window.myChart.update();
-						},
-						errors: function(e) {
-							alert(e);
-						}
-					}); // ajax
-				} //fucntion getPlayer
-
-				function getKBLPlayer(kbllist) {
-					var name2 = kbllist.innerText;
-					$.ajax({
-						url: '{% url "basketball:get_player_information" %}',
-						data: {
-							'player_name': name2
-						},
-						contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-						dataType: 'json',
-						success: function(data) {
-							$("#KBL_Player_info").empty();
-							var html = '';
-							//data = JSON.parse(data);
-							html += '<span class="name">' + data.name + '</span>';
-							html += '<span class="age"> Age : ' + data.age + ' years old</span>';
-							html += '<span class="other"> Height : ' + data.height + 'cm</span>';
-							html += '<span class="other"> Weight : ' + data.weight + 'kg</span>';
-							html += '<span class="other"> Position : ' + data.position + '</span>';
-							html += '<span class="other"> Team : ' + data.team + '</span>';
-							$("#KBL_Player_info").append(html);
-						},
-						errors: function(e) {
-							alert(e);
-						}
-					}); //ajax
-					$.ajax({
-						url: '{% url "basketball:get_player_stats" %}',
-						data: {
-							'player_name': name2
-						},
-						dataType: 'json',
-						success: function(data) {
-							var newDataset = {
-								label: name2,
-								data: data.chart_data,
-								backgroundColor: 'rgba(54, 162, 235, 0.2)',
-								borderColor: 'rgba(54, 162, 235, 1)',
-								borderWidth: 1,
-							}
-							chrtdata.datasets[1] = newDataset;
-							window.myChart.update();
-						},
-						errors: function(e) {
-							alert(e);
-						}
-					}); // ajax
-				} //fucntion getPlayer
-			</script>
 		</div>
 		<div>
-			<canvas id="player_chart" width="500" height="800"></canvas>
+			<canvas id="team_chart" width="500" height="800"></canvas>
 		</div>
 		<div id="KBL_detail">
 			<div class="detail_top">
-				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img">
-				<div class="detail_name" id="KBL_Player_info">
-					<span class="name">Player 2</span>
-					<span class="age">Age: 20 years old</span>
-					<br>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
-					<span class="other">Other Info</span>
+				<img src="https://www.handong.edu/site/handong/res/img/sub_802-02.png" alt="PlayerImg" class="player_img" id="KBL_img">
+				<div class="detail_name" id="NBA_Team_info">
+					<span class="name" id="KBL_Team_name" onclick="getKBLLeague(this)">Team name</span>
 				</div>
 			</div>
 			<div class="detail_bottom">
-				<span>Graphs</span>
+				<button type="button" name="toggle_nba_players" class="btn btn-default" id="KBL_toggle">Toggle Team Players</button>
+				<ul class="toggleable" id="KBL_player_list">
+					<li>Player 1</li>
+					<li>Player 2</li>
+					<li>Player 3</li>
+				</ul>
 			</div>
 		</div>
 		<div id="KBL">
@@ -269,37 +104,179 @@
 					</div>
 				</div>
 			</form>
-			<div class="player_list" id="KBL_player_list">
-				<script>
-					function KBL_changed() {
-						var player_name = $("#KBL_search").val();
-
-						$.ajax({
-							url: '{% url "basketball:get_player_list" %}',
-							data: {
-								'player_name': player_name
-							},
-							contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-							dataType: 'json',
-							success: function(data) {
-								$("#KBL_player_list").empty();
-								var html = '';
-								data = JSON.parse(data);
-								for (var i = 0; i < data.length; i++) {
-									html += '<div class="KBL_list" onclick="getKBLPlayer(this)"><span>' + data[i].name + '</span></div>';
-								}
-								$("#KBL_player_list").append(html);
-							},
-							errors: function(e) {
-								alert(e);
-							}
-						});
-					}
-				</script>
+			<div class="player_list" id="KBL_team_list">
 			</div>
 		</div>
 	</div>
-	<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+	<div id="loading" style="display: none; position: absolute; left: 50%; top: 50%;">loading</div>
+
+	<script type="text/javascript">
+
+		function NBA_changed() {
+			var team_name = $("#NBA_search").val();
+
+			$.ajax({
+				url: '{% url "basketball:get_league_list" %}',
+				data: {
+					'league_name': team_name
+				},
+				contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+				dataType: 'json',
+				success: function(data) {
+					$("#NBA_team_list").empty();
+					var html = '';
+					data = JSON.parse(data);
+					for (var i = 0; i < data.length; i++) {
+						html += '<div class="NBA_list" onclick="getNBALeague(this)"><span>' + data[i].name + '</span></div>';
+					}
+					$("#NBA_team_list").append(html);
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			});
+		}
+
+		function getNBALeague(nbalist) {
+			loading_on();
+			var name1 = nbalist.innerText;
+			$.ajax({
+				url: '{% url "basketball:get_league_stats" %}',
+				data: {
+					'league_name': name1
+				},
+				dataType: 'json',
+				success: function(data) {
+					var newDataset = {
+						label: name1,
+						data: data.chart_data,
+						backgroundColor: 'rgba(255, 92, 132, 0.2)',
+						borderColor: 'rgba(255, 92, 132, 1)',
+						borderWidth: 1,
+					}
+					chrtdata.datasets[0] = newDataset;
+					window.myChart.update();
+					loading_off();
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			}); // ajax
+		} //fucntion getPlayer
+
+		function getNBAPlayer(player) {
+			$(player).siblings().removeClass('selected');
+			$(player).addClass('selected');
+
+			loading_on();
+			var name1 = player.innerText;
+			$.ajax({
+				url: '{% url "basketball:get_player_stats" %}',
+				data: {
+					'player_name': name1
+				},
+				dataType: 'json',
+				success: function(data) {
+					var newDataset = {
+						label: name1,
+						data: data.chart_data,
+						backgroundColor: 'rgba(255, 92, 132, 0.2)',
+						borderColor: 'rgba(255, 92, 132, 1)',
+						borderWidth: 1,
+					}
+					chrtdata.datasets[0] = newDataset;
+					window.myChart.update();
+					loading_off();
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			}); // ajax
+		} //fucntion getPlayer
+
+		function getKBLLeague(kbllist) {
+			loading_on();
+			var name2 = kbllist.innerText;
+			$.ajax({
+				url: '{% url "basketball:get_league_stats" %}',
+				data: {
+					'league_name': name2
+				},
+				dataType: 'json',
+				success: function(data) {
+					var newDataset = {
+						label: name2,
+						data: data.chart_data,
+						backgroundColor: 'rgba(54, 162, 235, 0.2)',
+						borderColor: 'rgba(54, 162, 235, 1)',
+						borderWidth: 1,
+					}
+					chrtdata.datasets[1] = newDataset;
+					window.myChart.update();
+					loading_off();
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			}); // ajax
+		} //fucntion getPlayer
+
+		function getKBLPlayer(kbllist) {
+			$(kbllist).siblings().removeClass('selected');
+			$(kbllist).addClass('selected');
+			
+			loading_on();
+			var name2 = kbllist.innerText;
+			$.ajax({
+				url: '{% url "basketball:get_player_stats" %}',
+				data: {
+					'player_name': name2
+				},
+				dataType: 'json',
+				success: function(data) {
+					var newDataset = {
+						label: name2,
+						data: data.chart_data,
+						backgroundColor: 'rgba(54, 162, 235, 0.2)',
+						borderColor: 'rgba(54, 162, 235, 1)',
+						borderWidth: 1,
+					}
+					chrtdata.datasets[1] = newDataset;
+					window.myChart.update();
+					loading_off();
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			}); // ajax
+		} //fucntion getPlayer
+
+		function KBL_changed() {
+			var team_name = $("#KBL_search").val();
+
+			$.ajax({
+				url: '{% url "basketball:get_league_list" %}',
+				data: {
+					'league_name': team_name
+				},
+				contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+				dataType: 'json',
+				success: function(data) {
+					$("#KBL_team_list").empty();
+					var html = '';
+					data = JSON.parse(data);
+					for (var i = 0; i < data.length; i++) {
+						html += '<div class="KBL_list" onclick="getKBLLeague(this)"><span>' + data[i].name + '</span></div>';
+					}
+					$("#KBL_team_list").append(html);
+				},
+				errors: function(e) {
+					alert(e);
+				}
+			});
+		}
+	</script>
 </body>
 
 </html>

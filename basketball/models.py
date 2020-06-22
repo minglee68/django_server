@@ -191,7 +191,6 @@ class Team_stat(models.Model):
 class League_stat(models.Model):
 
     year = models.CharField(db_column='Year', max_length=5)
-    team_name = models.CharField(db_column='Team_Name', max_length=128)
     league_name = models.CharField(db_column='League_Name', max_length=128)
     score = models.DecimalField(db_column='Score', decimal_places=4, max_digits=58)
     fg = models.DecimalField(db_column='FG', decimal_places=4, max_digits=58)
