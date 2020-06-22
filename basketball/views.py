@@ -142,14 +142,16 @@ def get_player_stats(request):
             stats[0] += 0 #int(playerstat.mp)
             stats[1] += int(playerstat.fg)
             stats[2] += int(playerstat.fga)
-            stats[3] += int(playerstat.fgp)
+            if playerstat.fgp is not None:
+                stats[3] += int(playerstat.fgp)
             stats[4] += int(playerstat.number_3p)
             stats[5] += int(playerstat.number_3pa)
             if playerstat.number_3pp is not None:
                 stats[6] += int(playerstat.number_3pp)
             stats[7] += int(playerstat.ft)
             stats[8] += int(playerstat.fta)
-            stats[9] += int(playerstat.ftp)
+            if playerstat.ftp is not None:
+                stats[9] += int(playerstat.ftp)
             stats[10] += int(playerstat.orb)
             stats[11] += int(playerstat.drb)
             stats[12] += int(playerstat.ast)
