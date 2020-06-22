@@ -209,7 +209,7 @@ def crawl_KBL_gamePlayerStat():
 	game_data_list = []
 	for year in year_list:
 		for month in month_list:
-			url = ORIG_URL + "/schedule/today/calendar.asp?CalDate=" + str(year) + "-" + str(month)
+			url = ORIG_URL + "/schedule/today/calendar.asp?CalDate=" + str(year) + "-" + (str(month) if month > 9 else ("0" + str(month)))
 			driver.get(url)
 			html = driver.page_source
 			soup = BeautifulSoup(html, 'html.parser')
@@ -240,7 +240,7 @@ def crawl_KBL_gamePlayerStat():
 					if not (quarter_num == 5 and home_points == 0):
 						quarters["home"]["q" + str(quarter_num)] = home_points
 
-					away_points = quarter_table[1].select('td')[quarter_num].get_text()
+					away_points = int(quarter_table[1].select('td')[quarter_num].get_text())
 					if not (quarter_num == 5 and away_points == 0):
 						quarters["away"]["q" + str(quarter_num)] = away_points
 				game['points'] = quarters
