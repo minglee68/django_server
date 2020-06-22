@@ -8,7 +8,7 @@ from django.forms.models import model_to_dict
 from django.db.models import Q
 
 from .crawl import crawl_NBA_players, crawl_NBA_gamePlayerStat, crawl_NBA_quarter_gamePlayerStat, crawl_KBL_players, crawl_KBL_gamePlayerStat, crawl_KBL_quarter_gamePlayerStat
-from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team, Player_stat, Quarter, Team_stat
+from .models import City, Player, Position, Player, Playerposition, Season, Game, Gameplayerstat, Playerteam, Team, Player_stat, Quarter, Team_stat, League_stat
 
 
 IS_CRAWLING = False		# Read-only!!
